@@ -45,7 +45,7 @@ locals {
 
   kubeconfig = {
     host                   = "https://${data.oci_resourcemanager_private_endpoint_reachable_ip.oke_api.ip_address}:${local.oke_port}"
-    cluster_ca_certificate = base64decode(local.kubeconfig_parsed["clusters"][0]["cluster"]["certificate-authority-data"])
+    cluster_ca_certificate = null
     insecure               = true
     exec_api_version       = "client.authentication.k8s.io/v1beta1"
     exec_command           = "oci"
