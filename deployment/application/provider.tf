@@ -35,15 +35,15 @@ data "oci_resourcemanager_private_endpoint_reachable_ip" "oke_api" {
 }
 
 locals {
+  kubeconfig_parsed = yamldecode(data.oci_containerengine_cluster_kube_config.main.content)
+
   kubeconfig = {
     host                   = "https://${data.oci_resourcemanager_private_endpoint_reachable_ip.oke_api.ip_address}:6443"
-    cluster_ca_certificate = base64decode(data.oci_containerengine_cluster_kube_config.main.content)
-    cluster_id             = yamldecode(data.oci_containerengine_cluster_kube_config.main.content["users"][0]["user"]["exec"]["args"][4])
-    cluster_region         = yamldecode(data.oci_containerengine_cluster_kube_config.main.content["users"][0]["user"]["exec"]["args"][6])
+    cluster_ca_certificate = base64decode(local.kubeconfig_parsed["clusters"][0]["cluster"]["certificate-authority-data"])
     insecure               = true
-    exec_api_version       = "client.authentication.k8s.io/v1beta"
+    exec_api_version       = "client.authentication.k8s.io/v1beta1"
     exec_command           = "oci"
-    exec_command_args      = ["ce", "clister", "generate-token", "--cluster-id", local.kubeconfig.cluster_id, "--region", local.kubeconfig.cluster_region]
+    exec_command_args      = ["ce", "cluster", "generate-token", "--cluster-id", var.oke_cluster_id, "--region", var.region]
   }
 }
 
