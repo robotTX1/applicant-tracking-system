@@ -29,16 +29,22 @@ data "oci_containerengine_cluster_kube_config" "main" {
   token_version = "2.0.0"
 }
 
+locals {
+  oke_endpoint_parts = split(":", data.oci_containerengine_cluster.main.endpoints[0].private_endpoint)
+  oke_private_ip     = local.oke_endpoint_parts[0]
+  oke_port           = local.oke_endpoint_parts[1]
+}
+
 data "oci_resourcemanager_private_endpoint_reachable_ip" "oke_api" {
   private_endpoint_id = var.resourcemanager_private_endpoint_id
-  private_ip          = data.oci_containerengine_cluster.main.endpoints[0].private_endpoint
+  private_ip          = local.oke_private_ip
 }
 
 locals {
   kubeconfig_parsed = yamldecode(data.oci_containerengine_cluster_kube_config.main.content)
 
   kubeconfig = {
-    host                   = "https://${data.oci_resourcemanager_private_endpoint_reachable_ip.oke_api.ip_address}:6443"
+    host                   = "https://${data.oci_resourcemanager_private_endpoint_reachable_ip.oke_api.ip_address}:${local.oke_port}"
     cluster_ca_certificate = base64decode(local.kubeconfig_parsed["clusters"][0]["cluster"]["certificate-authority-data"])
     insecure               = true
     exec_api_version       = "client.authentication.k8s.io/v1beta1"
