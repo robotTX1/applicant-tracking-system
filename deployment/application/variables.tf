@@ -121,3 +121,18 @@ variable "keycloak_db_password_secret_name" {
   default     = "mysql-keycloak-password"
 }
 
+### Metrics Server ###
+
+variable "metrics_server_chart_version" {
+  type        = string
+  description = "Version of the Metrics Server Helm chart"
+  default     = "3.14.0"
+}
+
+variable "metrics_server_replicas" {
+  type        = number
+  description = "Number of Metrics Server replicas"
+  default     = 2
+}
+
+
