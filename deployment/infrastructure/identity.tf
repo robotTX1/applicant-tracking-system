@@ -35,13 +35,11 @@ resource "oci_identity_policy" "mysql_network" {
 resource "oci_identity_policy" "oke_network" {
   compartment_id = var.tenancy_ocid
   name           = "oke-network-policy"
-  description    = "Allows OKE clusters to manage load balancers and interact with network resources"
+  description    = "Allows OKE clusters to manage network load balancers and interact with network resources"
   defined_tags   = local.default_tags
 
   statements = [
-    "Allow any-user to manage load-balancers in compartment ${oci_identity_compartment.workloads.name} where request.principal.type = 'cluster'",
     "Allow any-user to manage network-load-balancers in compartment ${oci_identity_compartment.workloads.name} where request.principal.type = 'cluster'",
-    "Allow any-user to manage load-balancers in compartment ${oci_identity_compartment.network.name} where request.principal.type = 'cluster'",
     "Allow any-user to manage network-load-balancers in compartment ${oci_identity_compartment.network.name} where request.principal.type = 'cluster'",
     "Allow any-user to manage virtual-network-family in compartment ${oci_identity_compartment.network.name} where request.principal.type = 'cluster'",
     "Allow any-user to manage virtual-network-family in compartment ${oci_identity_compartment.workloads.name} where request.principal.type = 'cluster'"
