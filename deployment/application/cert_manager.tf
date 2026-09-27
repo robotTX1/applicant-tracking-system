@@ -20,15 +20,6 @@ resource "helm_release" "cert_manager" {
 
 ### Cloudflare API Token from OCI Vault ###
 
-data "oci_identity_compartments" "security" {
-  compartment_id            = var.tenancy_ocid
-  compartment_id_in_subtree = true
-  filter {
-    name   = "name"
-    values = ["security"]
-  }
-}
-
 data "oci_vault_secrets" "cloudflare_token" {
   compartment_id = data.oci_identity_compartments.security.compartments[0].id
   name           = var.cloudflare_vault_secret_name
