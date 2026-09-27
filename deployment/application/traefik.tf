@@ -18,6 +18,8 @@ resource "helm_release" "traefik" {
   version          = var.traefik_chart_version
   namespace        = "traefik"
   create_namespace = true
+  cleanup_on_fail  = true
+  timeout          = 600
 
   values = [
     yamlencode({
