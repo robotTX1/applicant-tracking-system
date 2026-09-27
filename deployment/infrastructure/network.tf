@@ -360,6 +360,22 @@ resource "oci_core_network_security_group_security_rule" "worker_ingress_lb_node
   }
 }
 
+resource "oci_core_network_security_group_security_rule" "worker_ingress_lb_nodeports_udp" {
+  network_security_group_id = oci_core_network_security_group.oke_worker.id
+  direction                 = "INGRESS"
+  protocol                  = "17"
+  source_type               = "NETWORK_SECURITY_GROUP"
+  source                    = oci_core_network_security_group.oke_load_balancer.id
+  description               = "Allow Load Balancer HTTP/3 UDP traffic to reach Traefik on NodePorts"
+
+  udp_options {
+    destination_port_range {
+      min = 30000
+      max = 32767
+    }
+  }
+}
+
 resource "oci_core_network_security_group_security_rule" "worker_ingress_lb_healthcheck" {
   network_security_group_id = oci_core_network_security_group.oke_worker.id
   direction                 = "INGRESS"
@@ -554,6 +570,22 @@ resource "oci_core_network_security_group_security_rule" "lb_ingress_https" {
   }
 }
 
+resource "oci_core_network_security_group_security_rule" "lb_ingress_http3" {
+  network_security_group_id = oci_core_network_security_group.oke_load_balancer.id
+  direction                 = "INGRESS"
+  protocol                  = "17"
+  source_type               = "CIDR_BLOCK"
+  source                    = "0.0.0.0/0"
+  description               = "Allow inbound HTTP/3 (QUIC) from internet"
+
+  udp_options {
+    destination_port_range {
+      min = 443
+      max = 443
+    }
+  }
+}
+
 resource "oci_core_network_security_group_security_rule" "lb_egress_worker_nodeports" {
   network_security_group_id = oci_core_network_security_group.oke_load_balancer.id
   direction                 = "EGRESS"
@@ -563,6 +595,22 @@ resource "oci_core_network_security_group_security_rule" "lb_egress_worker_nodep
   description               = "Route traffic to Traefik NodePorts on workers"
 
   tcp_options {
+    destination_port_range {
+      min = 30000
+      max = 32767
+    }
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "lb_egress_worker_nodeports_udp" {
+  network_security_group_id = oci_core_network_security_group.oke_load_balancer.id
+  direction                 = "EGRESS"
+  protocol                  = "17"
+  destination_type          = "NETWORK_SECURITY_GROUP"
+  destination               = oci_core_network_security_group.oke_worker.id
+  description               = "Route HTTP/3 UDP traffic to Traefik NodePorts on workers"
+
+  udp_options {
     destination_port_range {
       min = 30000
       max = 32767

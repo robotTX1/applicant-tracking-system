@@ -44,3 +44,17 @@ variable "acme_email" {
   description = "Email address used for ACME (Let's Encrypt) registration"
   default     = "csikos.csaba.hu@gmail.com"
 }
+
+### Traefik ###
+
+variable "traefik_chart_version" {
+  type        = string
+  description = "Version of the Traefik Helm chart"
+  default     = "41.6.0"
+}
+
+variable "traefik_load_balancer_nsg_id" {
+  type        = string
+  description = "OCID of the Network Security Group for Traefik Load Balancer (optional, dynamically resolved if null)"
+  default     = null
+}
