@@ -15,3 +15,12 @@ data "oci_identity_compartments" "network" {
     values = ["network"]
   }
 }
+
+data "oci_identity_compartments" "workloads" {
+  compartment_id            = var.tenancy_ocid
+  compartment_id_in_subtree = true
+  filter {
+    name   = "name"
+    values = ["workloads"]
+  }
+}

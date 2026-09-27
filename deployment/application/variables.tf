@@ -58,3 +58,66 @@ variable "traefik_load_balancer_nsg_id" {
   description = "OCID of the Network Security Group for Traefik Load Balancer (optional, dynamically resolved if null)"
   default     = null
 }
+
+### Keycloak ###
+
+variable "keycloak_chart_version" {
+  type        = string
+  description = "Version of the Keycloak Helm chart"
+  default     = "7.3.2"
+}
+
+variable "keycloak_hostname" {
+  type        = string
+  description = "Hostname for Keycloak"
+  default     = "auth.robottx.hu"
+}
+
+variable "keycloak_ingress_hosts" {
+  type        = list(string)
+  description = "Host matching rules for Keycloak IngressRoute"
+  default     = ["auth.robottx.hu", "www.auth.robottx.hu"]
+}
+
+variable "keycloak_certificate_dns_names" {
+  type        = list(string)
+  description = "DNS names for Keycloak TLS certificate"
+  default     = ["auth.robottx.hu", "robottx.hu"]
+}
+
+variable "keycloak_db_name" {
+  type        = string
+  description = "Name of the MySQL database for Keycloak"
+  default     = "keycloak"
+}
+
+variable "keycloak_replicas" {
+  type        = number
+  description = "Number of Keycloak replicas"
+  default     = 2
+}
+
+variable "keycloak_admin_username_secret_name" {
+  type        = string
+  description = "Name of the Vault secret containing the Keycloak bootstrap admin username"
+  default     = "keycloak-temp-admin-username"
+}
+
+variable "keycloak_admin_password_secret_name" {
+  type        = string
+  description = "Name of the Vault secret containing the Keycloak bootstrap admin password"
+  default     = "keycloak-temp-admin-password"
+}
+
+variable "keycloak_db_username_secret_name" {
+  type        = string
+  description = "Name of the Vault secret containing the MySQL username for Keycloak"
+  default     = "mysql-keycloak-username"
+}
+
+variable "keycloak_db_password_secret_name" {
+  type        = string
+  description = "Name of the Vault secret containing the MySQL password for Keycloak"
+  default     = "mysql-keycloak-password"
+}
+
