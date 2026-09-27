@@ -19,3 +19,10 @@ variable "oke_cluster_id" {
 variable "resourcemanager_private_endpoint_id" {
   type = string
 }
+
+### Cert Manager ###
+
+variable "cert_manager_version" {
+  type    = string
+  default = "v1.21.2"
+}
