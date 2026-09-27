@@ -21,14 +21,14 @@ resource "helm_release" "traefik" {
 
   values = [
     yamlencode({
-      globalArguments = [
-        "--global.sendanonymoususage=false",
-        "--global.checknewversion=false"
-      ]
+      global = {
+        checkNewVersion    = false
+        sendAnonymousUsage = false
+      }
 
-      additionalArguments = [
-        "--log.level=INFO"
-      ]
+      log = {
+        level = "INFO"
+      }
 
       deployment = {
         enabled = true
@@ -55,17 +55,21 @@ resource "helm_release" "traefik" {
 
       ports = {
         web = {
-          redirections = {
-            entryPoint = {
-              to        = "websecure"
-              scheme    = "https"
-              permanent = true
+          http = {
+            redirections = {
+              entryPoint = {
+                to        = "websecure"
+                scheme    = "https"
+                permanent = true
+              }
             }
           }
         }
         websecure = {
-          tls = {
-            enabled = true
+          http = {
+            tls = {
+              enabled = true
+            }
           }
           http3 = {
             enabled = true
