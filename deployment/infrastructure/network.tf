@@ -56,6 +56,7 @@ locals {
   oke_load_balancer_subnet_cidr = "10.1.3.0/24"
   bastion_subnet_cidr           = "10.1.4.0/28"
   database_subnet_cidr          = "10.1.5.0/24"
+  management_subnet_cidr        = "10.1.6.0/28"
 }
 
 resource "oci_core_subnet" "oke_api" {
@@ -105,6 +106,16 @@ resource "oci_core_subnet" "database" {
   cidr_block                 = local.database_subnet_cidr
   prohibit_public_ip_on_vnic = true
   route_table_id             = oci_core_route_table.database.id
+  defined_tags               = local.default_tags
+}
+
+resource "oci_core_subnet" "management" {
+  compartment_id             = oci_identity_compartment.network.id
+  vcn_id                     = oci_core_vcn.main.id
+  display_name               = "management-subnet"
+  cidr_block                 = local.management_subnet_cidr
+  prohibit_public_ip_on_vnic = true
+  route_table_id             = oci_core_route_table.management.id
   defined_tags               = local.default_tags
 }
 
@@ -170,6 +181,20 @@ resource "oci_core_route_table" "database" {
   }
 }
 
+resource "oci_core_route_table" "management" {
+  compartment_id = oci_identity_compartment.network.id
+  vcn_id         = oci_core_vcn.main.id
+  display_name   = "management-subnet-route-table"
+  defined_tags   = local.default_tags
+
+  route_rules {
+    network_entity_id = oci_core_service_gateway.main.id
+    description       = "Oracle Services route rule"
+    destination       = data.oci_core_services.all_services.services[0].cidr_block
+    destination_type  = "SERVICE_CIDR_BLOCK"
+  }
+}
+
 ### Network Security Groups ###
 
 resource "oci_core_network_security_group" "oke_control_plane" {
@@ -197,6 +222,13 @@ resource "oci_core_network_security_group" "database" {
   compartment_id = oci_identity_compartment.network.id
   vcn_id         = oci_core_vcn.main.id
   display_name   = "database-nsg"
+  defined_tags   = local.default_tags
+}
+
+resource "oci_core_network_security_group" "management" {
+  compartment_id = oci_identity_compartment.network.id
+  vcn_id         = oci_core_vcn.main.id
+  display_name   = "management-nsg"
   defined_tags   = local.default_tags
 }
 
@@ -328,6 +360,22 @@ resource "oci_core_network_security_group_security_rule" "worker_ingress_lb_node
   }
 }
 
+resource "oci_core_network_security_group_security_rule" "worker_ingress_lb_nodeports_udp" {
+  network_security_group_id = oci_core_network_security_group.oke_worker.id
+  direction                 = "INGRESS"
+  protocol                  = "17"
+  source_type               = "NETWORK_SECURITY_GROUP"
+  source                    = oci_core_network_security_group.oke_load_balancer.id
+  description               = "Allow Load Balancer HTTP/3 UDP traffic to reach Traefik on NodePorts"
+
+  udp_options {
+    destination_port_range {
+      min = 30000
+      max = 32767
+    }
+  }
+}
+
 resource "oci_core_network_security_group_security_rule" "worker_ingress_lb_healthcheck" {
   network_security_group_id = oci_core_network_security_group.oke_worker.id
   direction                 = "INGRESS"
@@ -365,6 +413,22 @@ resource "oci_core_network_security_group_security_rule" "control_plane_ingress_
   source_type               = "CIDR_BLOCK"
   source                    = local.bastion_subnet_cidr
   description               = "Allow Bastion port-forwarding to Kubernetes API"
+
+  tcp_options {
+    destination_port_range {
+      min = 6443
+      max = 6443
+    }
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "control_plane_ingress_management_6443" {
+  network_security_group_id = oci_core_network_security_group.oke_control_plane.id
+  direction                 = "INGRESS"
+  protocol                  = "6"
+  source_type               = "NETWORK_SECURITY_GROUP"
+  source                    = oci_core_network_security_group.management.id
+  description               = "Allow Resource Manager management endpoint to reach Kubernetes API"
 
   tcp_options {
     destination_port_range {
@@ -506,6 +570,22 @@ resource "oci_core_network_security_group_security_rule" "lb_ingress_https" {
   }
 }
 
+resource "oci_core_network_security_group_security_rule" "lb_ingress_http3" {
+  network_security_group_id = oci_core_network_security_group.oke_load_balancer.id
+  direction                 = "INGRESS"
+  protocol                  = "17"
+  source_type               = "CIDR_BLOCK"
+  source                    = "0.0.0.0/0"
+  description               = "Allow inbound HTTP/3 (QUIC) from internet"
+
+  udp_options {
+    destination_port_range {
+      min = 443
+      max = 443
+    }
+  }
+}
+
 resource "oci_core_network_security_group_security_rule" "lb_egress_worker_nodeports" {
   network_security_group_id = oci_core_network_security_group.oke_load_balancer.id
   direction                 = "EGRESS"
@@ -515,6 +595,22 @@ resource "oci_core_network_security_group_security_rule" "lb_egress_worker_nodep
   description               = "Route traffic to Traefik NodePorts on workers"
 
   tcp_options {
+    destination_port_range {
+      min = 30000
+      max = 32767
+    }
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "lb_egress_worker_nodeports_udp" {
+  network_security_group_id = oci_core_network_security_group.oke_load_balancer.id
+  direction                 = "EGRESS"
+  protocol                  = "17"
+  destination_type          = "NETWORK_SECURITY_GROUP"
+  destination               = oci_core_network_security_group.oke_worker.id
+  description               = "Route HTTP/3 UDP traffic to Traefik NodePorts on workers"
+
+  udp_options {
     destination_port_range {
       min = 30000
       max = 32767
@@ -599,5 +695,53 @@ resource "oci_core_network_security_group_security_rule" "database_egress_osn" {
       min = 443
       max = 443
     }
+  }
+}
+
+### Management Network Security Group Rules ###
+
+resource "oci_core_network_security_group_security_rule" "management_egress_control_plane_6443" {
+  network_security_group_id = oci_core_network_security_group.management.id
+  direction                 = "EGRESS"
+  protocol                  = "6"
+  destination_type          = "NETWORK_SECURITY_GROUP"
+  destination               = oci_core_network_security_group.oke_control_plane.id
+  description               = "Allow outbound communication to Kubernetes API control plane"
+
+  tcp_options {
+    destination_port_range {
+      min = 6443
+      max = 6443
+    }
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "management_egress_osn" {
+  network_security_group_id = oci_core_network_security_group.management.id
+  direction                 = "EGRESS"
+  protocol                  = "6"
+  destination_type          = "SERVICE_CIDR_BLOCK"
+  destination               = data.oci_core_services.all_services.services[0].cidr_block
+  description               = "Allow management endpoint outbound communication to Oracle Services Network"
+
+  tcp_options {
+    destination_port_range {
+      min = 443
+      max = 443
+    }
+  }
+}
+
+resource "oci_core_network_security_group_security_rule" "management_egress_icmp" {
+  network_security_group_id = oci_core_network_security_group.management.id
+  direction                 = "EGRESS"
+  protocol                  = "1"
+  destination_type          = "CIDR_BLOCK"
+  destination               = local.main_vcn_cidr
+  description               = "Path MTU discovery within VCN"
+
+  icmp_options {
+    type = 3
+    code = 4
   }
 }
