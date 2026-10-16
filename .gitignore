@@ -1,5 +1,3 @@
 /.idea/
 .terraform
 .terraform.lock.hcl
-*.sql
-*.sql.bak
