@@ -1,4 +1,4 @@
-package hu.robottx.ats.applicanttrackingsystem;
+package hu.robottx.ats;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

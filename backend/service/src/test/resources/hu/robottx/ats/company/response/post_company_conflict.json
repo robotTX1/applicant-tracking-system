@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Conflict",
+  "details": "Company already exists with name: TechCorp"
+}

@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Failed to validate request",
+  "details": "pageNumber must be greater than or equal to 0"
+}

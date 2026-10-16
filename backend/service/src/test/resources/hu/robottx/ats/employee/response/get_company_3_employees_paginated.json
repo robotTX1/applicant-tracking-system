@@ -1,0 +1,18 @@
+{
+  "content": [
+    {
+      "id": 3,
+      "companyId": 3,
+      "userId": "test-user",
+      "role": "HR_MANAGER",
+      "status": "ACTIVE",
+      "assignedDate": "2026-01-03T10:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 1,
+    "number": 0,
+    "totalElements": 2,
+    "totalPages": 2
+  }
+}

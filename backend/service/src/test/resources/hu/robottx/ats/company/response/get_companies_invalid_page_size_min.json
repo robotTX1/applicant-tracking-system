@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Failed to validate request",
+  "details": "pageSize must be greater than or equal to 1"
+}

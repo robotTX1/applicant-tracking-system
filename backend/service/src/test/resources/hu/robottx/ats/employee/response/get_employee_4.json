@@ -1,0 +1,8 @@
+{
+  "id": 4,
+  "companyId": 3,
+  "userId": "other-user",
+  "role": "OWNER",
+  "status": "ACTIVE",
+  "assignedDate": "2026-01-03T10:00:00Z"
+}

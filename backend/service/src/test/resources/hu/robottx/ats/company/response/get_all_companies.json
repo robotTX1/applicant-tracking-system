@@ -1,0 +1,38 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "TechCorp",
+      "foundingDate": "2015-03-10",
+      "websiteUrl": "https://techcorp.example.com",
+      "description": "Enterprise software solutions provider."
+    },
+    {
+      "id": 2,
+      "name": "InnovateLabs",
+      "foundingDate": "2020-07-22",
+      "websiteUrl": "https://innovatelabs.example.com",
+      "description": "AI and cloud research company."
+    },
+    {
+      "id": 3,
+      "name": "DataFlow Systems",
+      "foundingDate": "2018-11-05",
+      "websiteUrl": "https://dataflow.example.com",
+      "description": "Big data analytics and streaming platform."
+    },
+    {
+      "id": 4,
+      "name": "CloudNine",
+      "foundingDate": "2022-01-15",
+      "websiteUrl": "https://cloudnine.example.com",
+      "description": "Modern cloud infrastructure services."
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 4,
+    "totalPages": 1
+  }
+}

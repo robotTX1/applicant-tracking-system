@@ -1,0 +1,17 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "TechCorp",
+      "foundingDate": "2015-03-10",
+      "websiteUrl": "https://techcorp.example.com",
+      "description": "Enterprise software solutions provider."
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

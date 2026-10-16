@@ -1,0 +1,24 @@
+{
+  "content": [
+    {
+      "id": 4,
+      "name": "CloudNine",
+      "foundingDate": "2022-01-15",
+      "websiteUrl": "https://cloudnine.example.com",
+      "description": "Modern cloud infrastructure services."
+    },
+    {
+      "id": 3,
+      "name": "DataFlow Systems",
+      "foundingDate": "2018-11-05",
+      "websiteUrl": "https://dataflow.example.com",
+      "description": "Big data analytics and streaming platform."
+    }
+  ],
+  "page": {
+    "size": 2,
+    "number": 0,
+    "totalElements": 4,
+    "totalPages": 2
+  }
+}

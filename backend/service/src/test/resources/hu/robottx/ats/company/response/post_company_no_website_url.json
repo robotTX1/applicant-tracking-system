@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Failed to validate request",
+  "details": "websiteUrl must not be null"
+}
