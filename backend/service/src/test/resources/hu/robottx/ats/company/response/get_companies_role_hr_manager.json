@@ -1,0 +1,17 @@
+{
+  "content": [
+    {
+      "id": 3,
+      "name": "DataFlow Systems",
+      "foundingDate": "2018-11-05",
+      "websiteUrl": "https://dataflow.example.com",
+      "description": "Big data analytics and streaming platform."
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

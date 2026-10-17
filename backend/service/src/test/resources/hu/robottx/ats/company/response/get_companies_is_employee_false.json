@@ -1,0 +1,17 @@
+{
+  "content": [
+    {
+      "id": 4,
+      "name": "CloudNine",
+      "foundingDate": "2022-01-15",
+      "websiteUrl": "https://cloudnine.example.com",
+      "description": "Modern cloud infrastructure services."
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

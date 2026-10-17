@@ -1,0 +1,837 @@
+openapi: 3.0.0
+info:
+  title: Applicant Tracking System API Specification
+  version: 1.0.0
+servers:
+  - url: https://ats.robottx.hu/api/v1
+tags:
+  - name: users
+    description: Endpoints for fetching, saving and updating users
+  - name: companies
+    description: Endpoints for fetching, saving, updating and deleting companies
+  - name: employees
+    description: Endpoints for managing company employees
+paths:
+  /users/me:
+    get:
+      tags:
+        - users
+      operationId: getCurrentUser
+      summary: Get current authenticated user
+      description: Returns the current user's information read from the JWT token provided for authentication
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /companies:
+    get:
+      tags:
+        - companies
+      operationId: getCompanies
+      summary: Search and list companies
+      description: Returns a paginated list of companies filtered and sorted using RSQL
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+        - in: query
+          name: isEmployee
+          required: false
+          schema:
+            type: boolean
+          description: >
+            Filter companies by the current user's employee membership status.
+            If true, returns only companies where the user is an employee.
+            If false, returns only companies where the user is NOT an employee.
+            If omitted, returns all companies regardless of membership status (unless role is specified).
+        - in: query
+          name: role
+          required: false
+          schema:
+            $ref: '#/components/schemas/CompanyRole'
+          description: >
+            Filter companies by the current user's specific role in the company.
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedCompanyResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - companies
+      operationId: saveCompany
+      summary: Create a new company
+      description: Creates a new company and assigns the authenticated user as its owner
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanySaveRequest'
+      responses:
+        '201':
+          description: Successful Operation
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /companies/1
+              description: Location for the newly created resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /companies/{companyId}:
+    get:
+      tags:
+        - companies
+      operationId: getCompany
+      summary: Get company by ID
+      description: Returns a company by its unique identifier
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - companies
+      operationId: updateCompany
+      summary: Update company
+      description: Updates a company by its ID if the authenticated user is its owner or co-owner
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUpdateRequest'
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - companies
+      operationId: deleteCompany
+      summary: Delete company
+      description: Deletes a company by its ID if the authenticated user is its owner
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Successful Operation
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /companies/{companyId}/employees:
+    get:
+      tags:
+        - employees
+      operationId: getEmployees
+      summary: Search and list company employees
+      description: Returns a paginated list of employees for the specified company, filtered and sorted using RSQL. Accessible by employees of the company.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedEmployeeResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - employees
+      operationId: saveEmployee
+      summary: Add employee to company
+      description: Adds a user to the company in any role excluding OWNER. Accessible by company owners and co-owners.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeSaveRequest'
+      responses:
+        '201':
+          description: Successful Operation
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /companies/1/employees/2
+              description: Location for the newly created resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /companies/{companyId}/employees/{employeeId}:
+    get:
+      tags:
+        - employees
+      operationId: getEmployee
+      summary: Get employee by ID
+      description: Returns an employee by ID within the specified company. Accessible by employees of the company.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: employeeId
+          description: ID of the employee
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - employees
+      operationId: updateEmployee
+      summary: Update employee role
+      description: Updates an employee's role within the company to any role excluding OWNER. Accessible by company owners and co-owners.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: employeeId
+          description: ID of the employee
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdateRequest'
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - employees
+      operationId: deleteEmployee
+      summary: Remove employee from company
+      description: Removes an employee from the company. The company owner cannot be removed. Accessible by company owners and co-owners.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: employeeId
+          description: ID of the employee
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Successful Operation
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    CurrentUserResponse:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - phoneNumber
+      properties:
+        firstName:
+          type: string
+          title: First name
+          description: First name of the authenticated user
+          example: John
+          maxLength: 60
+        lastName:
+          type: string
+          title: Last name
+          description: Last name of the authenticated user
+          example: Doe
+          maxLength: 60
+        email:
+          type: string
+          format: email
+          title: Email address
+          description: Email address of the authenticated user
+          example: john.doe@example.com
+          maxLength: 255
+        phoneNumber:
+          type: string
+          title: Phone number
+          description: Phone number of the authenticated user
+          example: "+36301234567"
+          maxLength: 15
+    PagedCompanyResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompanyResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    CompanyResponse:
+      type: object
+      required:
+        - id
+        - name
+        - foundingDate
+        - websiteUrl
+        - description
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the company
+          description: Unique identifier of the company
+          example: 1
+          readOnly: true
+        name:
+          type: string
+          title: Company name
+          description: Name of the company
+          example: Acme Corporation
+          maxLength: 100
+        foundingDate:
+          type: string
+          format: date
+          title: Founding date
+          description: Founding date of the company
+          example: "2020-01-15"
+        websiteUrl:
+          type: string
+          title: Website URL
+          description: Website URL of the company
+          example: "https://acme.example.com"
+          maxLength: 2000
+        description:
+          type: string
+          title: Description
+          description: Description of the company
+          example: "Leading provider of innovative solutions."
+          maxLength: 2000
+    CompanyBaseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: Company name
+          description: Name of the company
+          example: Acme Corporation
+          minLength: 1
+          maxLength: 100
+        foundingDate:
+          type: string
+          format: date
+          title: Founding date
+          description: Founding date of the company
+          example: "2020-01-15"
+        websiteUrl:
+          type: string
+          title: Website URL
+          description: Website URL of the company
+          example: "https://acme.example.com"
+          minLength: 1
+          maxLength: 2000
+        description:
+          type: string
+          title: Description
+          description: Description of the company
+          example: "Leading provider of innovative solutions."
+          minLength: 1
+          maxLength: 2000
+    CompanySaveRequest:
+      type: object
+      required:
+        - name
+        - foundingDate
+        - websiteUrl
+        - description
+      allOf:
+        - $ref: '#/components/schemas/CompanyBaseRequest'
+    CompanyUpdateRequest:
+      type: object
+      required:
+        - name
+        - foundingDate
+        - websiteUrl
+        - description
+      allOf:
+        - $ref: '#/components/schemas/CompanyBaseRequest'
+    SearchAndPageRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SearchRequest'
+        - $ref: '#/components/schemas/PaginationRequest'
+    SearchRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          title: RSQL query
+          description: >
+            RSQL query for filtering the returned data.
+            Available properties: id, name, foundingDate, websiteUrl, description.
+          example: name=ilike='Acme'
+          minLength: 0
+          maxLength: 200
+        sort:
+          type: string
+          title: RSQL sort
+          description: >
+            RSQL sort for ordering the returned data.
+            Available properties: id, name, foundingDate, websiteUrl, description.
+          example: id,asc
+          minLength: 0
+          maxLength: 200
+    PaginationRequest:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          title: Page number
+          description: Controls which page is returned
+          example: 0
+          minimum: 0
+          default: 0
+        pageSize:
+          type: integer
+          title: Page size
+          description: Controls the number of returned elements
+          example: 20
+          minimum: 1
+          maximum: 100
+          default: 20
+    PageResponse:
+      type: object
+      required:
+        - size
+        - number
+        - totalElements
+        - totalPages
+      properties:
+        size:
+          type: integer
+          title: Page size
+          description: The number of elements returned in the response
+          example: 20
+        number:
+          type: integer
+          title: Page number
+          description: Current number of the page returned in the response
+          example: 0
+        totalElements:
+          type: integer
+          title: Total elements
+          description: Number of total elements
+          example: 20
+        totalPages:
+          type: integer
+          title: Total pages
+          description: Number of total pages
+          example: 1
+    ErrorResponse:
+      type: object
+      required:
+        - type
+        - title
+        - details
+        - status
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        details:
+          type: string
+        status:
+          type: string
+          format: http-status
+          x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonIgnore"
+    HttpStatusCode:
+      type: object
+      description: Custom mapping for Spring HttpStatusCode
+    CompanyRole:
+      type: string
+      enum:
+        - OWNER
+        - CO_OWNER
+        - HR_MANAGER
+        - TECHNICAL_INTERVIEWER
+    CompanyEmployeeStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+    PagedEmployeeResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    EmployeeResponse:
+      type: object
+      required:
+        - id
+        - companyId
+        - userId
+        - role
+        - status
+        - assignedDate
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the employee
+          description: Unique identifier of the employee
+          example: 1
+          readOnly: true
+        companyId:
+          type: integer
+          format: int64
+          title: Unique identifier of the company
+          description: Unique identifier of the company
+          example: 1
+          readOnly: true
+        userId:
+          type: string
+          title: Unique identifier of the user
+          description: Unique identifier of the user
+          example: "test-user"
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/CompanyRole'
+        status:
+          $ref: '#/components/schemas/CompanyEmployeeStatus'
+        assignedDate:
+          type: string
+          format: date-time
+          title: Assigned date
+          description: Date and time when the user was assigned to the company
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+    EmployeeSaveRequest:
+      type: object
+      required:
+        - userId
+        - role
+      properties:
+        userId:
+          type: string
+          title: User ID
+          description: Unique identifier of the user to be added
+          example: "other-user"
+          minLength: 1
+          maxLength: 36
+        role:
+          $ref: '#/components/schemas/CompanyRole'
+    EmployeeUpdateRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          $ref: '#/components/schemas/CompanyRole'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: [ ]

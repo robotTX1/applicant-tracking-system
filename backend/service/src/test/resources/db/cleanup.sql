@@ -1,0 +1,14 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE documents;
+TRUNCATE TABLE companies;
+TRUNCATE TABLE users;
+TRUNCATE TABLE employees;
+TRUNCATE TABLE job_listings;
+TRUNCATE TABLE applications;
+TRUNCATE TABLE feedbacks;
+TRUNCATE TABLE email_templates;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+COMMIT;

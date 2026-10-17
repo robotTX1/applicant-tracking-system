@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Conflict",
+  "details": "User test-user is already an employee of company 1"
+}

@@ -1,0 +1,24 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "TechCorp",
+      "foundingDate": "2015-03-10",
+      "websiteUrl": "https://techcorp.example.com",
+      "description": "Enterprise software solutions provider."
+    },
+    {
+      "id": 2,
+      "name": "InnovateLabs",
+      "foundingDate": "2020-07-22",
+      "websiteUrl": "https://innovatelabs.example.com",
+      "description": "AI and cloud research company."
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 2,
+    "totalPages": 1
+  }
+}

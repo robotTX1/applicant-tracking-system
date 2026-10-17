@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Resource limit reached",
+  "details": "Max company limit reached. Limit 3"
+}

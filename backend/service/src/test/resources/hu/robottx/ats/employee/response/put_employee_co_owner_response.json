@@ -1,0 +1,8 @@
+{
+  "id": 7,
+  "companyId": 4,
+  "userId": "third-user",
+  "role": "TECHNICAL_INTERVIEWER",
+  "status": "ACTIVE",
+  "assignedDate": "2026-01-05T10:00:00Z"
+}
