@@ -4,6 +4,12 @@ variable "tenancy_ocid" {
   type = string
 }
 
+variable "region" {
+  type        = string
+  description = "OCI region"
+  default     = "eu-frankfurt-1"
+}
+
 ### OKE ###
 
 variable "oke_kubernetes_version" {
@@ -73,4 +79,12 @@ variable "mysql_availability_domain_number" {
   type        = number
   description = "Availability Domain number (1, 2, or 3) for MySQL DB system"
   default     = 3
+}
+
+### Storage ###
+
+variable "workloads_bucket_name" {
+  type        = string
+  description = "Name of the standard bucket in workloads compartment"
+  default     = "ats-documents"
 }
