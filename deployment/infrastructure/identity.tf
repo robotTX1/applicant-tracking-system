@@ -9,13 +9,16 @@ resource "oci_identity_dynamic_group" "oke_clusters" {
 
 ### Policies ###
 
-resource "oci_identity_policy" "oke_kms_access" {
+resource "oci_identity_policy" "kms_access" {
   compartment_id = var.tenancy_ocid
-  name           = "oke-kms-access-policy"
-  description    = "Allows OKE clusters to use the master encryption key in the security compartment"
+  name           = "kms-access-policy"
+  description    = "Allows OKE clusters and Object Storage to use the master encryption key in the security compartment"
+  defined_tags   = local.default_tags
+
   statements = [
     "Allow dynamic-group ${oci_identity_dynamic_group.oke_clusters.name} to use vaults in compartment ${oci_identity_compartment.security.name}",
-    "Allow dynamic-group ${oci_identity_dynamic_group.oke_clusters.name} to use keys in compartment ${oci_identity_compartment.security.name} where target.key.id = '${oci_kms_key.main.id}'"
+    "Allow dynamic-group ${oci_identity_dynamic_group.oke_clusters.name} to use keys in compartment ${oci_identity_compartment.security.name} where target.key.id = '${oci_kms_key.main.id}'",
+    "Allow service objectstorage-${var.region} to use keys in compartment ${oci_identity_compartment.security.name} where target.key.id = '${oci_kms_key.main.id}'"
   ]
 }
 
@@ -45,4 +48,6 @@ resource "oci_identity_policy" "oke_network" {
     "Allow any-user to manage virtual-network-family in compartment ${oci_identity_compartment.workloads.name} where request.principal.type = 'cluster'"
   ]
 }
+
+
 
