@@ -1,0 +1,8 @@
+{
+  "companyId": 1,
+  "location": "Budapest, Hungary",
+  "title": "Backend Software Engineer",
+  "description": "Looking for an experienced backend developer with Java skills.",
+  "aiReviewEnabled": true,
+  "aiReviewMinScore": 75
+}

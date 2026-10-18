@@ -1,0 +1,12 @@
+{
+  "id": 8,
+  "companyId": 3,
+  "location": "Remote, Hungary",
+  "title": "Frontend Engineer",
+  "description": "Looking for a Vue.js and React specialist.",
+  "aiReviewEnabled": false,
+  "aiReviewMinScore": 60,
+  "status": "PUBLISHED",
+  "createdAt": "2025-08-16T13:30:10Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}

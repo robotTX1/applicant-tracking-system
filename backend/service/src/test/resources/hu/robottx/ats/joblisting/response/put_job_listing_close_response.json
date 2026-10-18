@@ -1,0 +1,12 @@
+{
+  "id": 4,
+  "companyId": 3,
+  "location": "Szeged, Hungary",
+  "title": "Data Engineer Updated",
+  "description": "Closing this role.",
+  "aiReviewEnabled": false,
+  "aiReviewMinScore": 60,
+  "status": "CLOSED",
+  "createdAt": "2026-01-04T10:00:00Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}

@@ -1,0 +1,9 @@
+{
+  "id": 4,
+  "companyId": 3,
+  "type": "OFFER",
+  "subject": "Offer from DataFlow",
+  "body": "We are pleased to offer you the role at DataFlow.",
+  "createdAt": "2026-01-04T10:00:00Z",
+  "updatedAt": "2026-01-04T10:00:00Z"
+}

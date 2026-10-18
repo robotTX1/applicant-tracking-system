@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "companyId": 1,
+  "location": "Debrecen, Hungary",
+  "title": "Lead Software Architect",
+  "description": "Updated job description with more details.",
+  "aiReviewEnabled": true,
+  "aiReviewMinScore": 85,
+  "status": "PUBLISHED",
+  "createdAt": "2026-01-01T10:00:00Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}

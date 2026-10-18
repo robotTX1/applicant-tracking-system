@@ -1,0 +1,9 @@
+{
+  "id": 7,
+  "companyId": 1,
+  "type": "OFFER",
+  "subject": "New Job Offer",
+  "body": "We are thrilled to offer you the position.",
+  "createdAt": "2025-08-16T13:30:10Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}

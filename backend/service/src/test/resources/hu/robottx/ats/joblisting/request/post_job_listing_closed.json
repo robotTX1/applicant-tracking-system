@@ -1,0 +1,9 @@
+{
+  "companyId": 1,
+  "location": "Budapest, Hungary",
+  "title": "Closed Role",
+  "description": "Attempting to create closed listing.",
+  "aiReviewEnabled": false,
+  "aiReviewMinScore": 50,
+  "status": "CLOSED"
+}

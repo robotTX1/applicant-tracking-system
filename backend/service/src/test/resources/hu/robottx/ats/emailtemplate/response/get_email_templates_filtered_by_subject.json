@@ -1,0 +1,19 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "companyId": 1,
+      "type": "OFFER",
+      "subject": "Software Engineer Offer",
+      "body": "Congratulations! We are pleased to offer you the Software Engineer position.",
+      "createdAt": "2026-01-01T10:00:00Z",
+      "updatedAt": "2026-01-01T10:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}
