@@ -3,7 +3,6 @@ package hu.robottx.ats.service;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
-import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import hu.robottx.ats.domain.CompanyPermission;
 import hu.robottx.ats.domain.EmployeeRole;
 import hu.robottx.ats.domain.EmployeeStatus;
 import hu.robottx.ats.entity.Company;
@@ -31,6 +31,7 @@ import hu.robottx.ats.model.SearchAndPageRequest;
 import hu.robottx.ats.repository.CompanyRepository;
 import hu.robottx.ats.repository.EmployeeRepository;
 import hu.robottx.ats.repository.UserRepository;
+import hu.robottx.ats.security.service.CompanySecurityService;
 import hu.robottx.ats.security.service.SecurityService;
 import hu.robottx.ats.util.EmployeeQueryParamsUtil;
 
@@ -39,13 +40,12 @@ import hu.robottx.ats.util.EmployeeQueryParamsUtil;
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
 
-    private static final String COMPANY_NOT_FOUND_MESSAGE = "No company with id: %d";
     private static final String EMPLOYEE_NOT_FOUND_MESSAGE = "No employee with id: %d";
     private static final String USER_NOT_FOUND_MESSAGE = "No user with id: %s";
-    private static final Set<EmployeeRole> OWNER_AND_CO_OWNER = Set.of(EmployeeRole.OWNER, EmployeeRole.CO_OWNER);
 
     private final Clock clock;
     private final SecurityService securityService;
+    private final CompanySecurityService companySecurityService;
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final EmployeeRepository employeeRepository;
@@ -55,7 +55,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public PagedEmployeeResponse getEmployees(Long companyId, SearchAndPageRequest request) {
         String userId = securityService.getId();
         log.debug("Getting employees for company {} by user {}", companyId, userId);
-        validateCompanyMembership(companyId, userId);
+        companySecurityService.validatePermission(companyId, CompanyPermission.VIEW_EMPLOYEES);
         PageRequest pageRequest = PageRequest.of(request.getPageNumber(), request.getPageSize());
         Specification<Employee> spec = EmployeeQueryParamsUtil.createSearchSpecification(companyId, request);
         try {
@@ -73,7 +73,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeResponse getEmployeeById(Long companyId, Long employeeId) {
         String userId = securityService.getId();
         log.debug("Getting employee {} for company {} by user {}", employeeId, companyId, userId);
-        validateCompanyMembership(companyId, userId);
+        companySecurityService.validatePermission(companyId, CompanyPermission.VIEW_EMPLOYEES);
         Employee employee = employeeRepository.findByEmployeeIdAndCompanyCompanyId(employeeId, companyId)
                 .orElseThrow(() -> {
                     log.debug("No employee with id {} in company {}", employeeId, companyId);
@@ -87,11 +87,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeResponse saveEmployee(Long companyId, EmployeeSaveRequest request) {
         String userId = securityService.getId();
         log.debug("Adding employee {} to company {} by user {}", request, companyId, userId);
-        validateOwnerOrCoOwner(companyId, userId);
-        if (request.getRole() == CompanyRole.OWNER) {
-            log.debug("Attempted to assign OWNER role to employee");
-            throw new IllegalArgumentException("Cannot assign OWNER role to employee");
-        }
+        companySecurityService.validatePermission(companyId, CompanyPermission.MANAGE_EMPLOYEES);
+        validateRoleNotOwner(request.getRole());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> {
                     log.debug("User {} not found", request.getUserId());
@@ -132,23 +129,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeResponse updateEmployee(Long companyId, Long employeeId, EmployeeUpdateRequest request) {
         String userId = securityService.getId();
         log.debug("Updating employee {} for company {} by user {}", employeeId, companyId, userId);
-        validateOwnerOrCoOwner(companyId, userId);
-        Employee employee = employeeRepository.findByEmployeeIdAndCompanyCompanyId(employeeId, companyId)
-                .orElseThrow(() -> {
-                    log.debug("No employee with id {} in company {}", employeeId, companyId);
-                    return new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE.formatted(employeeId));
-                });
-        if (employee.getStatus() != EmployeeStatus.ACTIVE) {
-            log.debug("Employee {} is not active in company {}", employeeId, companyId);
-            throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE.formatted(employeeId));
-        }
+        companySecurityService.validatePermission(companyId, CompanyPermission.MANAGE_EMPLOYEES);
+        validateRoleNotOwner(request.getRole());
+        Employee employee = getActiveEmployee(companyId, employeeId);
         if (employee.getRole() == EmployeeRole.OWNER) {
             log.debug("Attempted to update role of company owner");
             throw new IllegalArgumentException("Cannot update the role of the company owner");
-        }
-        if (request.getRole() == CompanyRole.OWNER) {
-            log.debug("Attempted to assign OWNER role to employee");
-            throw new IllegalArgumentException("Cannot assign OWNER role to employee");
         }
         employee.setRole(EmployeeMapper.INSTANCE.toDomain(request.getRole()));
         employee = employeeRepository.save(employee);
@@ -161,16 +147,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void deleteEmployee(Long companyId, Long employeeId) {
         String userId = securityService.getId();
         log.debug("Deleting employee {} from company {} by user {}", employeeId, companyId, userId);
-        validateOwnerOrCoOwner(companyId, userId);
-        Employee employee = employeeRepository.findByEmployeeIdAndCompanyCompanyId(employeeId, companyId)
-                .orElseThrow(() -> {
-                    log.debug("No employee with id {} in company {}", employeeId, companyId);
-                    return new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE.formatted(employeeId));
-                });
-        if (employee.getStatus() != EmployeeStatus.ACTIVE) {
-            log.debug("Employee {} is already inactive in company {}", employeeId, companyId);
-            throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE.formatted(employeeId));
-        }
+        companySecurityService.validatePermission(companyId, CompanyPermission.MANAGE_EMPLOYEES);
+        Employee employee = getActiveEmployee(companyId, employeeId);
         if (employee.getRole() == EmployeeRole.OWNER) {
             log.debug("Attempted to remove company owner");
             throw new IllegalArgumentException("Cannot remove the owner of the company");
@@ -180,19 +158,23 @@ public class EmployeeServiceImpl implements EmployeeService {
         log.debug("Deactivated employee {} from company {}", employeeId, companyId);
     }
 
-    private void validateCompanyMembership(Long companyId, String userId) {
-        if (!employeeRepository.existsByCompanyCompanyIdAndUserUserIdAndStatus(
-                companyId, userId, EmployeeStatus.ACTIVE)) {
-            log.debug("User {} is not an active employee of company {}", userId, companyId);
-            throw new ResourceNotFoundException(COMPANY_NOT_FOUND_MESSAGE.formatted(companyId));
+    private Employee getActiveEmployee(Long companyId, Long employeeId) {
+        Employee employee = employeeRepository.findByEmployeeIdAndCompanyCompanyId(employeeId, companyId)
+                .orElseThrow(() -> {
+                    log.debug("No employee with id {} in company {}", employeeId, companyId);
+                    return new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE.formatted(employeeId));
+                });
+        if (employee.getStatus() != EmployeeStatus.ACTIVE) {
+            log.debug("Employee {} is not active in company {}", employeeId, companyId);
+            throw new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE.formatted(employeeId));
         }
+        return employee;
     }
 
-    private void validateOwnerOrCoOwner(Long companyId, String userId) {
-        if (!employeeRepository.existsByCompanyCompanyIdAndUserUserIdAndRoleInAndStatus(
-                companyId, userId, OWNER_AND_CO_OWNER, EmployeeStatus.ACTIVE)) {
-            log.debug("User {} is not an active owner or co-owner of company {}", userId, companyId);
-            throw new ResourceNotFoundException(COMPANY_NOT_FOUND_MESSAGE.formatted(companyId));
+    private void validateRoleNotOwner(CompanyRole role) {
+        if (role == CompanyRole.OWNER) {
+            log.debug("Attempted to assign OWNER role to employee");
+            throw new IllegalArgumentException("Cannot assign OWNER role to employee");
         }
     }
 

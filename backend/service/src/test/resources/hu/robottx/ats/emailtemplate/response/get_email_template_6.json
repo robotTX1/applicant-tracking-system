@@ -1,0 +1,9 @@
+{
+  "id": 6,
+  "companyId": 4,
+  "type": "OFFER",
+  "subject": "CloudNine Offer",
+  "body": "Welcome to CloudNine.",
+  "createdAt": "2026-01-06T10:00:00Z",
+  "updatedAt": "2026-01-06T10:00:00Z"
+}

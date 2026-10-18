@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Resource limit reached",
+  "details": "Maximum limit of 3 email templates reached for type DECLINE"
+}

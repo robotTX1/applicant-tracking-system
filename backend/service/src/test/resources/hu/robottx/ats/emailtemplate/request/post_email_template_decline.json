@@ -1,0 +1,5 @@
+{
+  "type": "DECLINE",
+  "subject": "Rejection Notice",
+  "body": "Unfortunately we decided not to move forward."
+}

@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Resource not found",
+  "details": "No email template with id: 4"
+}

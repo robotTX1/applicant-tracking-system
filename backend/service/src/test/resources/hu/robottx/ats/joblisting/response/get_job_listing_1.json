@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "companyId": 1,
+  "location": "Budapest",
+  "title": "Senior Java Developer",
+  "description": "We are looking for a Senior Java Developer.",
+  "aiReviewEnabled": true,
+  "aiReviewMinScore": 70,
+  "status": "PUBLISHED",
+  "createdAt": "2026-01-01T10:00:00Z",
+  "updatedAt": "2026-01-01T10:00:00Z"
+}

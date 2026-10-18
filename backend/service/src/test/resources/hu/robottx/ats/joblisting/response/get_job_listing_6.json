@@ -1,0 +1,12 @@
+{
+  "id": 6,
+  "companyId": 4,
+  "location": "Remote",
+  "title": "Product Manager",
+  "description": "We are looking for a Product Manager.",
+  "aiReviewEnabled": false,
+  "aiReviewMinScore": 65,
+  "status": "DRAFT",
+  "createdAt": "2026-01-06T10:00:00Z",
+  "updatedAt": "2026-01-06T10:00:00Z"
+}

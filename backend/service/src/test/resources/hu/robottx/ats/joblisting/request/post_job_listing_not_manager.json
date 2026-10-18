@@ -1,0 +1,8 @@
+{
+  "companyId": 4,
+  "location": "Budapest, Hungary",
+  "title": "Unauthorized Role",
+  "description": "Should fail because user is not manager of company 4.",
+  "aiReviewEnabled": false,
+  "aiReviewMinScore": 50
+}

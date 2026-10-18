@@ -1,0 +1,9 @@
+{
+  "companyId": 4,
+  "location": "Budapest, Hungary",
+  "title": "Co-owner Role",
+  "description": "Listing created by a co-owner of CloudNine.",
+  "aiReviewEnabled": true,
+  "aiReviewMinScore": 80,
+  "status": "DRAFT"
+}

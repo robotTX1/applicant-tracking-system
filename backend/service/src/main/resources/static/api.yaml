@@ -11,6 +11,10 @@ tags:
     description: Endpoints for fetching, saving, updating and deleting companies
   - name: employees
     description: Endpoints for managing company employees
+  - name: job-listings
+    description: Endpoints for managing job listings
+  - name: email-templates
+    description: Endpoints for managing company email templates
 paths:
   /users/me:
     get:
@@ -512,6 +516,448 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /companies/{companyId}/email-templates:
+    get:
+      tags:
+        - email-templates
+      operationId: getEmailTemplates
+      summary: Search and list company email templates
+      description: Returns a paginated list of email templates for the specified company, filtered and sorted using RSQL. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedEmailTemplateResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - email-templates
+      operationId: saveEmailTemplate
+      summary: Create email template
+      description: Creates a new email template for a company. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailTemplateSaveRequest'
+      responses:
+        '201':
+          description: Successful Operation
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /companies/1/email-templates/1
+              description: Location for the newly created resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplateResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /companies/{companyId}/email-templates/{emailTemplateId}:
+    get:
+      tags:
+        - email-templates
+      operationId: getEmailTemplate
+      summary: Get email template by ID
+      description: Returns an email template by ID within the specified company. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: emailTemplateId
+          description: ID of the email template
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplateResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - email-templates
+      operationId: updateEmailTemplate
+      summary: Update email template
+      description: Updates an email template within the specified company. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: emailTemplateId
+          description: ID of the email template
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailTemplateUpdateRequest'
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplateResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - email-templates
+      operationId: deleteEmailTemplate
+      summary: Delete email template
+      description: Deletes an email template within the specified company. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: companyId
+          description: ID of the company
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: emailTemplateId
+          description: ID of the email template
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Successful Operation
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /job-listings:
+    get:
+      tags:
+        - job-listings
+      operationId: getJobListings
+      summary: Search and list job listings
+      description: Returns a paginated list of job listings filtered and sorted using RSQL. Accessible by authenticated users.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedJobListingResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - job-listings
+      operationId: saveJobListing
+      summary: Create a new job listing
+      description: Creates a new job listing for a company. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobListingSaveRequest'
+      responses:
+        '201':
+          description: Successful Operation
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /job-listings/1
+              description: Location for the newly created resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListingResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /job-listings/{jobListingId}:
+    get:
+      tags:
+        - job-listings
+      operationId: getJobListing
+      summary: Get job listing by ID
+      description: Returns a job listing by ID. Accessible by authenticated users if published, or by company owners, co-owners, and HR managers if draft or closed.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: jobListingId
+          description: ID of the job listing
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListingResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - job-listings
+      operationId: updateJobListing
+      summary: Update job listing
+      description: Updates a job listing by its ID. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: jobListingId
+          description: ID of the job listing
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobListingUpdateRequest'
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobListingResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - job-listings
+      operationId: deleteJobListing
+      summary: Delete job listing
+      description: Deletes a job listing by its ID. Accessible by company owners, co-owners, and HR managers.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: jobListingId
+          description: ID of the job listing
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Successful Operation
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     CurrentUserResponse:
@@ -827,6 +1273,303 @@ components:
       properties:
         role:
           $ref: '#/components/schemas/CompanyRole'
+    JobListingStatus:
+      type: string
+      enum:
+        - DRAFT
+        - PUBLISHED
+        - CLOSED
+    PagedJobListingResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobListingResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    JobListingResponse:
+      type: object
+      required:
+        - id
+        - companyId
+        - location
+        - title
+        - description
+        - aiReviewEnabled
+        - aiReviewMinScore
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the job listing
+          description: Unique identifier of the job listing
+          example: 1
+          readOnly: true
+        companyId:
+          type: integer
+          format: int64
+          title: Unique identifier of the company
+          description: Unique identifier of the company
+          example: 1
+          readOnly: true
+        location:
+          type: string
+          title: Location
+          description: Location of the job listing
+          example: "Budapest, Hungary"
+        title:
+          type: string
+          title: Job title
+          description: Title of the job listing
+          example: "Senior Software Engineer"
+        description:
+          type: string
+          title: Description
+          description: Detailed description of the job listing
+          example: "We are looking for a Senior Software Engineer..."
+        aiReviewEnabled:
+          type: boolean
+          title: AI review enabled
+          description: Whether AI automated review is enabled for applicants
+          example: true
+        aiReviewMinScore:
+          type: integer
+          title: AI review minimum score
+          description: Minimum score threshold for AI review
+          example: 70
+        status:
+          $ref: '#/components/schemas/JobListingStatus'
+        createdAt:
+          type: string
+          format: date-time
+          title: Created at
+          description: Date and time when the job listing was created
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          title: Updated at
+          description: Date and time when the job listing was last updated
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+    JobListingSaveRequest:
+      type: object
+      required:
+        - companyId
+        - location
+        - title
+        - description
+        - aiReviewEnabled
+        - aiReviewMinScore
+      properties:
+        companyId:
+          type: integer
+          format: int64
+          title: Company ID
+          description: Unique identifier of the company
+          example: 1
+        location:
+          type: string
+          title: Location
+          description: Location of the job listing
+          example: "Budapest, Hungary"
+          minLength: 1
+          maxLength: 255
+        title:
+          type: string
+          title: Job title
+          description: Title of the job listing
+          example: "Senior Software Engineer"
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          title: Description
+          description: Detailed description of the job listing
+          example: "We are looking for a Senior Software Engineer..."
+          minLength: 1
+          maxLength: 4000
+        aiReviewEnabled:
+          type: boolean
+          title: AI review enabled
+          description: Whether AI automated review is enabled for applicants
+          example: true
+        aiReviewMinScore:
+          type: integer
+          title: AI review minimum score
+          description: Minimum score threshold for AI review
+          example: 70
+          minimum: 0
+          maximum: 100
+        status:
+          $ref: '#/components/schemas/JobListingStatus'
+    JobListingUpdateRequest:
+      type: object
+      required:
+        - location
+        - title
+        - description
+        - aiReviewEnabled
+        - aiReviewMinScore
+        - status
+      properties:
+        location:
+          type: string
+          title: Location
+          description: Location of the job listing
+          example: "Budapest, Hungary"
+          minLength: 1
+          maxLength: 255
+        title:
+          type: string
+          title: Job title
+          description: Title of the job listing
+          example: "Senior Software Engineer"
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          title: Description
+          description: Detailed description of the job listing
+          example: "We are looking for a Senior Software Engineer..."
+          minLength: 1
+          maxLength: 4000
+        aiReviewEnabled:
+          type: boolean
+          title: AI review enabled
+          description: Whether AI automated review is enabled for applicants
+          example: true
+        aiReviewMinScore:
+          type: integer
+          title: AI review minimum score
+          description: Minimum score threshold for AI review
+          example: 70
+          minimum: 0
+          maximum: 100
+        status:
+          $ref: '#/components/schemas/JobListingStatus'
+    CompanyEmailTemplateType:
+      type: string
+      enum:
+        - OFFER
+        - DECLINE
+    PagedEmailTemplateResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailTemplateResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    EmailTemplateResponse:
+      type: object
+      required:
+        - id
+        - companyId
+        - type
+        - subject
+        - body
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the email template
+          description: Unique identifier of the email template
+          example: 1
+          readOnly: true
+        companyId:
+          type: integer
+          format: int64
+          title: Unique identifier of the company
+          description: Unique identifier of the company
+          example: 1
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/CompanyEmailTemplateType'
+        subject:
+          type: string
+          title: Subject
+          description: Subject of the email template
+          example: "Offer of Employment"
+        body:
+          type: string
+          title: Body
+          description: Body content of the email template
+          example: "Dear Candidate,\nWe are pleased to offer you..."
+        createdAt:
+          type: string
+          format: date-time
+          title: Created at
+          description: Date and time when the email template was created
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          title: Updated at
+          description: Date and time when the email template was last updated
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+    EmailTemplateSaveRequest:
+      type: object
+      required:
+        - type
+        - subject
+        - body
+      properties:
+        type:
+          $ref: '#/components/schemas/CompanyEmailTemplateType'
+        subject:
+          type: string
+          title: Subject
+          description: Subject of the email template
+          example: "Offer of Employment"
+          minLength: 1
+          maxLength: 255
+        body:
+          type: string
+          title: Body
+          description: Body content of the email template
+          example: "Dear Candidate,\nWe are pleased to offer you..."
+          minLength: 1
+          maxLength: 2000
+    EmailTemplateUpdateRequest:
+      type: object
+      required:
+        - type
+        - subject
+        - body
+      properties:
+        type:
+          $ref: '#/components/schemas/CompanyEmailTemplateType'
+        subject:
+          type: string
+          title: Subject
+          description: Subject of the email template
+          example: "Offer of Employment"
+          minLength: 1
+          maxLength: 255
+        body:
+          type: string
+          title: Body
+          description: Body content of the email template
+          example: "Dear Candidate,\nWe are pleased to offer you..."
+          minLength: 1
+          maxLength: 2000
   securitySchemes:
     bearerAuth:
       type: http

@@ -1,0 +1,12 @@
+{
+  "id": 5,
+  "companyId": 4,
+  "location": "Budapest, Hungary",
+  "title": "DevOps Engineer Updated",
+  "description": "Updated by co-owner of CloudNine.",
+  "aiReviewEnabled": true,
+  "aiReviewMinScore": 75,
+  "status": "PUBLISHED",
+  "createdAt": "2026-01-05T10:00:00Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}
