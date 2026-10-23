@@ -17,6 +17,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import hu.robottx.ats.exception.ConflictException;
@@ -147,6 +149,30 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
                 .type(CLIENT_ERROR_TYPE)
                 .title(FAILED_TO_VALIDATE_REQUEST)
                 .details(details)
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
+        return handleAllException(errorResponse);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMaxUploadSizeExceededException(@NonNull MaxUploadSizeExceededException ex,
+            @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .type(CLIENT_ERROR_TYPE)
+                .title(BAD_REQUEST_TITLE)
+                .details("File size exceeds the maximum allowed size of 5 MB")
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
+        return handleAllException(errorResponse);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestPart(@NonNull MissingServletRequestPartException ex,
+            @NonNull HttpHeaders headers, @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .type(CLIENT_ERROR_TYPE)
+                .title(BAD_REQUEST_TITLE)
+                .details(ex.getMessage())
                 .status(HttpStatus.BAD_REQUEST)
                 .build();
         return handleAllException(errorResponse);

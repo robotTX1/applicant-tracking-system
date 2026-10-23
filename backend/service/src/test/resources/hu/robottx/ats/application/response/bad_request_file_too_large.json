@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Bad request",
+  "details": "File size exceeds the maximum allowed size of 5 MB"
+}

@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Resource not found",
+  "details": "No application with id: 1"
+}

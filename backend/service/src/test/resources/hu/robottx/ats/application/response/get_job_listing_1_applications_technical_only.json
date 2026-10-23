@@ -1,0 +1,22 @@
+{
+  "content": [
+    {
+      "id": 2,
+      "jobListingId": 1,
+      "userId": "third-user",
+      "cvDocumentId": 2,
+      "applicantMessage": "Ready for technical interview",
+      "aiReview": "Excellent architecture skills",
+      "aiScore": 95,
+      "status": "TECHNICAL_INTERVIEW_SCHEDULED",
+      "createdAt": "2026-01-11T10:00:00Z",
+      "updatedAt": "2026-01-11T10:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

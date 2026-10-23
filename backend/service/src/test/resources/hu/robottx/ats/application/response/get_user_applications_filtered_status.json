@@ -1,0 +1,20 @@
+{
+  "content": [
+    {
+      "id": 2,
+      "jobListingId": 8,
+      "userId": "test-user",
+      "cvDocumentId": 2,
+      "applicantMessage": "Application to Backend role",
+      "status": "HR_INTERVIEW_SCHEDULED",
+      "createdAt": "2026-01-11T10:00:00Z",
+      "updatedAt": "2026-01-11T10:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

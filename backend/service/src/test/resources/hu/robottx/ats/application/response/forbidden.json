@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Forbidden",
+  "details": "You do not have the necessary permissions to access this resource"
+}

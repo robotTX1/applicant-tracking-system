@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Conflict",
+  "details": "User has already applied to job listing with id: 5"
+}

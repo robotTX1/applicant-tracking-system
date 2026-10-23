@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Failed to validate request",
+  "details": "jobListingId must not be null"
+}
