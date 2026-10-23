@@ -1,0 +1,22 @@
+{
+  "content": [
+    {
+      "id": 4,
+      "jobListingId": 5,
+      "userId": "third-user",
+      "cvDocumentId": 4,
+      "applicantMessage": "DevOps candidate",
+      "aiReview": "Good CI/CD",
+      "aiScore": 80,
+      "status": "TECHNICAL_INTERVIEWED",
+      "createdAt": "2026-01-13T10:00:00Z",
+      "updatedAt": "2026-01-13T10:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

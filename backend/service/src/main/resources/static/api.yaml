@@ -15,6 +15,8 @@ tags:
     description: Endpoints for managing job listings
   - name: email-templates
     description: Endpoints for managing company email templates
+  - name: applications
+    description: Endpoints for managing job applications
 paths:
   /users/me:
     get:
@@ -33,6 +35,148 @@ paths:
                 $ref: '#/components/schemas/CurrentUserResponse'
         '401':
           description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/cv:
+    post:
+      tags:
+        - users
+      operationId: uploadCurrentUserCv
+      summary: Upload current user's default CV
+      description: Uploads or replaces the current user's default CV (max 5 MB)
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The CV file to upload (max 5 MB)
+      responses:
+        '201':
+          description: CV uploaded successfully
+          headers:
+            Location:
+              description: URI of the uploaded CV
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - users
+      operationId: getCurrentUserCv
+      summary: Download current user's default CV
+      description: Downloads the current user's default CV file
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      responses:
+        '200':
+          description: Successful Operation
+          headers:
+            Content-Disposition:
+              description: Attachment header with filename
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+        '404':
+          description: CV not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - users
+      operationId: deleteCurrentUserCv
+      summary: Delete current user's default CV
+      description: Deletes the current user's default CV
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      responses:
+        '204':
+          description: CV deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: CV not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/cv/metadata:
+    get:
+      tags:
+        - users
+      operationId: getCurrentUserCvMetadata
+      summary: Get current user's default CV metadata
+      description: Returns metadata about the current user's default CV
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: CV not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         default:
           description: Unexpected error
           content:
@@ -958,6 +1102,469 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /users/me/applications:
+    get:
+      tags:
+        - applications
+      operationId: getCurrentUserApplications
+      summary: Search and list current user's job applications
+      description: Returns a paginated list of the authenticated user's job applications, filtered and sorted using RSQL.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedUserApplicationResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - applications
+      operationId: saveCurrentUserApplication
+      summary: Create a new job application
+      description: Creates a new job application to an open job listing using either a newly uploaded CV or the user's default CV.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - application
+              properties:
+                application:
+                  $ref: '#/components/schemas/ApplicationSaveRequest'
+                file:
+                  type: string
+                  format: binary
+                  description: Optional CV file to upload for this application (max 5 MB). If omitted, the user's default CV is copied.
+      responses:
+        '201':
+          description: Successful Operation
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /users/me/applications/1
+              description: Location for the newly created resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApplicationResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/applications/{applicationId}:
+    get:
+      tags:
+        - applications
+      operationId: getCurrentUserApplication
+      summary: Get current user's job application by ID
+      description: Returns a specific job application belonging to the authenticated user.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApplicationResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - applications
+      operationId: deleteCurrentUserApplication
+      summary: Delete current user's job application
+      description: Deletes a specific job application belonging to the authenticated user and its associated CV document.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Successful Operation
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/applications/{applicationId}/cv:
+    get:
+      tags:
+        - applications
+      operationId: getCurrentUserApplicationCv
+      summary: Download CV for current user's job application
+      description: Downloads the CV file attached to the authenticated user's job application.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          headers:
+            Content-Disposition:
+              description: Attachment header with filename
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /users/me/applications/{applicationId}/cv/metadata:
+    get:
+      tags:
+        - applications
+      operationId: getCurrentUserApplicationCvMetadata
+      summary: Get CV metadata for current user's job application
+      description: Returns metadata about the CV attached to the authenticated user's job application.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /job-listings/{jobListingId}/applications:
+    get:
+      tags:
+        - applications
+      operationId: getJobListingApplications
+      summary: Search and list applications for a job listing
+      description: >
+        Returns a paginated list of applications for the specified job listing, filtered and sorted using RSQL.
+        Accessible by company owners, co-owners, and HR managers in all stages, and by technical interviewers
+        when the application is in the technical interview stage.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: jobListingId
+          description: ID of the job listing
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedJobApplicationResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /job-listings/{jobListingId}/applications/{applicationId}:
+    get:
+      tags:
+        - applications
+      operationId: getJobListingApplication
+      summary: Get application by ID for a job listing
+      description: >
+        Returns a specific application for the given job listing.
+        Accessible by company owners, co-owners, and HR managers in all stages, and by technical interviewers
+        when the application is in the technical interview stage.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: jobListingId
+          description: ID of the job listing
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /job-listings/{jobListingId}/applications/{applicationId}/cv:
+    get:
+      tags:
+        - applications
+      operationId: getJobListingApplicationCv
+      summary: Download CV for a job listing application
+      description: >
+        Downloads the CV file attached to a specific application for the given job listing.
+        Accessible by company owners, co-owners, and HR managers in all stages, and by technical interviewers
+        when the application is in the technical interview stage.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: jobListingId
+          description: ID of the job listing
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          headers:
+            Content-Disposition:
+              description: Attachment header with filename
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /job-listings/{jobListingId}/applications/{applicationId}/cv/metadata:
+    get:
+      tags:
+        - applications
+      operationId: getJobListingApplicationCvMetadata
+      summary: Get CV metadata for a job listing application
+      description: >
+        Returns metadata about the CV attached to a specific application for the given job listing.
+        Accessible by company owners, co-owners, and HR managers in all stages, and by technical interviewers
+        when the application is in the technical interview stage.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: jobListingId
+          description: ID of the job listing
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     CurrentUserResponse:
@@ -993,6 +1600,37 @@ components:
           description: Phone number of the authenticated user
           example: "+36301234567"
           maxLength: 15
+    DocumentResponse:
+      type: object
+      required:
+        - id
+        - originalDocumentName
+        - mimeType
+        - uploadedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the document
+          description: Unique identifier of the document
+          example: 1
+          readOnly: true
+        originalDocumentName:
+          type: string
+          title: Original document name
+          description: Original name of the uploaded document
+          example: resume.pdf
+        mimeType:
+          type: string
+          title: MIME type
+          description: MIME type of the document
+          example: application/pdf
+        uploadedAt:
+          type: string
+          format: date-time
+          title: Upload timestamp
+          description: Date and time when the document was uploaded
+          example: "2026-01-01T10:00:00Z"
     PagedCompanyResponse:
       type: object
       required:
@@ -1570,6 +2208,190 @@ components:
           example: "Dear Candidate,\nWe are pleased to offer you..."
           minLength: 1
           maxLength: 2000
+    JobApplicationStatus:
+      type: string
+      enum:
+        - APPLIED
+        - AI_REVIEW_SCHEDULED
+        - AI_REVIEWED
+        - HR_INTERVIEW_SCHEDULED
+        - HR_INTERVIEWED
+        - TECHNICAL_INTERVIEW_SCHEDULED
+        - TECHNICAL_INTERVIEWED
+        - OFFER
+        - DECLINED
+    ApplicationSaveRequest:
+      type: object
+      required:
+        - jobListingId
+      properties:
+        jobListingId:
+          type: integer
+          format: int64
+          title: Job listing ID
+          description: Unique identifier of the job listing to apply to
+          example: 1
+        applicantMessage:
+          type: string
+          title: Applicant message
+          description: Optional message or cover note from the applicant
+          example: "I am very interested in this position."
+          maxLength: 2000
+    UserApplicationResponse:
+      type: object
+      required:
+        - id
+        - jobListingId
+        - userId
+        - cvDocumentId
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the application
+          description: Unique identifier of the application
+          example: 1
+          readOnly: true
+        jobListingId:
+          type: integer
+          format: int64
+          title: Unique identifier of the job listing
+          description: Unique identifier of the job listing
+          example: 1
+          readOnly: true
+        userId:
+          type: string
+          title: Unique identifier of the user
+          description: Unique identifier of the applicant user
+          example: "test-user"
+          readOnly: true
+        cvDocumentId:
+          type: integer
+          format: int64
+          title: Unique identifier of the CV document
+          description: Unique identifier of the CV document attached to the application
+          example: 1
+          readOnly: true
+        applicantMessage:
+          type: string
+          title: Applicant message
+          description: Optional message or cover note from the applicant
+          example: "I am very interested in this position."
+          maxLength: 2000
+        status:
+          $ref: '#/components/schemas/JobApplicationStatus'
+        createdAt:
+          type: string
+          format: date-time
+          title: Created at
+          description: Date and time when the application was created
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          title: Updated at
+          description: Date and time when the application was last updated
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+    PagedUserApplicationResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserApplicationResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    JobApplicationResponse:
+      type: object
+      required:
+        - id
+        - jobListingId
+        - userId
+        - cvDocumentId
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the application
+          description: Unique identifier of the application
+          example: 1
+          readOnly: true
+        jobListingId:
+          type: integer
+          format: int64
+          title: Unique identifier of the job listing
+          description: Unique identifier of the job listing
+          example: 1
+          readOnly: true
+        userId:
+          type: string
+          title: Unique identifier of the user
+          description: Unique identifier of the applicant user
+          example: "test-user"
+          readOnly: true
+        cvDocumentId:
+          type: integer
+          format: int64
+          title: Unique identifier of the CV document
+          description: Unique identifier of the CV document attached to the application
+          example: 1
+          readOnly: true
+        applicantMessage:
+          type: string
+          title: Applicant message
+          description: Optional message or cover note from the applicant
+          example: "I am very interested in this position."
+          maxLength: 2000
+        aiReview:
+          type: string
+          title: AI review
+          description: Automated AI review summary of the application
+          example: "Strong Java and Spring Boot background."
+          maxLength: 2000
+        aiScore:
+          type: integer
+          title: AI score
+          description: Automated AI score of the application
+          example: 85
+        status:
+          $ref: '#/components/schemas/JobApplicationStatus'
+        createdAt:
+          type: string
+          format: date-time
+          title: Created at
+          description: Date and time when the application was created
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          title: Updated at
+          description: Date and time when the application was last updated
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+    PagedJobApplicationResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobApplicationResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
   securitySchemes:
     bearerAuth:
       type: http

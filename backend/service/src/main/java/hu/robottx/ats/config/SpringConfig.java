@@ -1,7 +1,9 @@
 package hu.robottx.ats.config;
 
+import com.oracle.bmc.Region;
 import com.oracle.bmc.auth.AbstractAuthenticationDetailsProvider;
 import com.oracle.bmc.auth.InstancePrincipalsAuthenticationDetailsProvider;
+import com.oracle.bmc.objectstorage.ObjectStorageClient;
 import com.oracle.bmc.secrets.SecretsClient;
 
 import java.time.Clock;
@@ -9,6 +11,7 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -50,7 +53,16 @@ public class SpringConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(name = "secret-provider", havingValue = "vault")
+    @ConditionalOnProperty(name = "storage-provider", havingValue = "oci")
+    public ObjectStorageClient objectStorageClient(AbstractAuthenticationDetailsProvider authenticationDetailsProvider,
+            OciStorageConfig ociStorageConfig) {
+        return ObjectStorageClient.builder()
+                .region(Region.fromRegionId(ociStorageConfig.getRegion()))
+                .build(authenticationDetailsProvider);
+    }
+
+    @Bean
+    @ConditionalOnExpression("'${secret-provider:}'.equals('vault') or '${storage-provider:}'.equals('oci')")
     public AbstractAuthenticationDetailsProvider instancePrincipalDetailsProvider() {
         return InstancePrincipalsAuthenticationDetailsProvider.builder().build();
     }

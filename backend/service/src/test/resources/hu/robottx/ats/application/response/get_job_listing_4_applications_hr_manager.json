@@ -1,0 +1,22 @@
+{
+  "content": [
+    {
+      "id": 3,
+      "jobListingId": 4,
+      "userId": "third-user",
+      "cvDocumentId": 3,
+      "applicantMessage": "Applying for Data Engineer",
+      "aiReview": null,
+      "aiScore": null,
+      "status": "HR_INTERVIEWED",
+      "createdAt": "2026-01-12T10:00:00Z",
+      "updatedAt": "2026-01-12T10:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

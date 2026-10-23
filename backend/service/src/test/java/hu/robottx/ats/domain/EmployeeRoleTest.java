@@ -31,6 +31,8 @@ class EmployeeRoleTest extends UnitTest {
         assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.CREATE_HR_FEEDBACK)).isTrue();
         assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.CREATE_TECHNICAL_FEEDBACK)).isTrue();
         assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.MANAGE_EMAIL_TEMPLATES)).isTrue();
+        assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.VIEW_ALL_APPLICATIONS)).isTrue();
+        assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS)).isTrue();
     }
 
     @Test
@@ -45,6 +47,8 @@ class EmployeeRoleTest extends UnitTest {
         assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS)).isTrue();
         assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.CREATE_HR_FEEDBACK)).isTrue();
         assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.MANAGE_EMAIL_TEMPLATES)).isTrue();
+        assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.VIEW_ALL_APPLICATIONS)).isTrue();
+        assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS)).isTrue();
     }
 
     @Test
@@ -58,9 +62,12 @@ class EmployeeRoleTest extends UnitTest {
                 .hasPermission(CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS)).isFalse();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.CREATE_HR_FEEDBACK)).isFalse();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.MANAGE_EMAIL_TEMPLATES)).isFalse();
+        assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.VIEW_ALL_APPLICATIONS)).isFalse();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.VIEW_EMPLOYEES)).isTrue();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER
                 .hasPermission(CompanyPermission.CREATE_TECHNICAL_FEEDBACK)).isTrue();
+        assertThat(EmployeeRole.TECHNICAL_INTERVIEWER
+                .hasPermission(CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS)).isTrue();
     }
 
     @Test
@@ -85,6 +92,10 @@ class EmployeeRoleTest extends UnitTest {
                         EmployeeRole.TECHNICAL_INTERVIEWER);
         assertThat(EmployeeRole.getRolesWith(CompanyPermission.MANAGE_EMAIL_TEMPLATES))
                 .containsExactlyInAnyOrder(EmployeeRole.OWNER, EmployeeRole.CO_OWNER, EmployeeRole.HR_MANAGER);
+        assertThat(EmployeeRole.getRolesWith(CompanyPermission.VIEW_ALL_APPLICATIONS))
+                .containsExactlyInAnyOrder(EmployeeRole.OWNER, EmployeeRole.CO_OWNER, EmployeeRole.HR_MANAGER);
+        assertThat(EmployeeRole.getRolesWith(CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS))
+                .containsExactlyInAnyOrder(EmployeeRole.values());
     }
 
     @Test

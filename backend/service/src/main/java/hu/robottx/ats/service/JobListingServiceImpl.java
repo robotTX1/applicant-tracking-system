@@ -5,6 +5,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -66,14 +67,10 @@ public class JobListingServiceImpl implements JobListingService {
     public JobListingResponse getJobListingById(Long jobListingId) {
         String userId = securityService.getId();
         log.debug("Getting job listing {} by user {}", jobListingId, userId);
-        JobListing jobListing = jobListingRepository.findById(jobListingId)
-                .orElseThrow(() -> {
-                    log.debug("No job listing with id {}", jobListingId);
-                    return new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
-                });
+        JobListing jobListing = getJobListing(jobListingId);
         if (jobListing.getStatus() != JobStatus.PUBLISHED
                 && !companySecurityService.hasPermission(
-                        jobListing.getCompany().getCompanyId(), CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS)) {
+                jobListing.getCompany().getCompanyId(), CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS)) {
             log.debug("User {} cannot access non-published job listing {}", userId, jobListingId);
             throw new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
         }
@@ -91,8 +88,8 @@ public class JobListingServiceImpl implements JobListingService {
             throw new IllegalArgumentException("Cannot create a job listing with CLOSED status");
         }
         JobStatus status = request.getStatus() != null
-                ? JobListingMapper.INSTANCE.toDomain(request.getStatus())
-                : JobStatus.DRAFT;
+                           ? JobListingMapper.INSTANCE.toDomain(request.getStatus())
+                           : JobStatus.DRAFT;
         Company company = companyRepository.getReferenceById(request.getCompanyId());
         JobListing jobListing = JobListing.builder()
                 .company(company)
@@ -137,11 +134,7 @@ public class JobListingServiceImpl implements JobListingService {
     }
 
     private JobListing getJobListingForManager(Long jobListingId, String userId) {
-        JobListing jobListing = jobListingRepository.findById(jobListingId)
-                .orElseThrow(() -> {
-                    log.debug("No job listing with id {}", jobListingId);
-                    return new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
-                });
+        JobListing jobListing = getJobListing(jobListingId);
         if (!companySecurityService.hasPermission(
                 jobListing.getCompany().getCompanyId(), CompanyPermission.MANAGE_JOB_LISTINGS)) {
             log.debug("User {} is not an authorized manager for company {} of job listing {}",
@@ -149,6 +142,14 @@ public class JobListingServiceImpl implements JobListingService {
             throw new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
         }
         return jobListing;
+    }
+
+    private @NonNull JobListing getJobListing(Long jobListingId) {
+        return jobListingRepository.findById(jobListingId)
+                .orElseThrow(() -> {
+                    log.debug("No job listing with id {}", jobListingId);
+                    return new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
+                });
     }
 
 }

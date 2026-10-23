@@ -18,18 +18,23 @@ public enum EmployeeRole {
             CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS,
             CompanyPermission.CREATE_HR_FEEDBACK,
             CompanyPermission.CREATE_TECHNICAL_FEEDBACK,
-            CompanyPermission.MANAGE_EMAIL_TEMPLATES
+            CompanyPermission.MANAGE_EMAIL_TEMPLATES,
+            CompanyPermission.VIEW_ALL_APPLICATIONS,
+            CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS
     )),
     HR_MANAGER(EnumSet.of(
             CompanyPermission.VIEW_EMPLOYEES,
             CompanyPermission.MANAGE_JOB_LISTINGS,
             CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS,
             CompanyPermission.CREATE_HR_FEEDBACK,
-            CompanyPermission.MANAGE_EMAIL_TEMPLATES
+            CompanyPermission.MANAGE_EMAIL_TEMPLATES,
+            CompanyPermission.VIEW_ALL_APPLICATIONS,
+            CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS
     )),
     TECHNICAL_INTERVIEWER(EnumSet.of(
             CompanyPermission.VIEW_EMPLOYEES,
-            CompanyPermission.CREATE_TECHNICAL_FEEDBACK
+            CompanyPermission.CREATE_TECHNICAL_FEEDBACK,
+            CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS
     ));
 
     private static final Map<CompanyPermission, Set<EmployeeRole>> ROLES_BY_PERMISSION;
