@@ -8,6 +8,8 @@
       "description": "We are looking for a Senior Java Developer.",
       "aiReviewEnabled": true,
       "aiReviewMinScore": 70,
+      "offerEmailTemplateId": 1,
+      "declineEmailTemplateId": 2,
       "status": "PUBLISHED",
       "createdAt": "2026-01-01T10:00:00Z",
       "updatedAt": "2026-01-01T10:00:00Z"
@@ -20,6 +22,8 @@
       "description": "We are looking for a Junior Frontend Developer.",
       "aiReviewEnabled": false,
       "aiReviewMinScore": 50,
+      "offerEmailTemplateId": 1,
+      "declineEmailTemplateId": 2,
       "status": "DRAFT",
       "createdAt": "2026-01-02T10:00:00Z",
       "updatedAt": "2026-01-02T10:00:00Z"
@@ -32,6 +36,8 @@
       "description": "We are looking for a Cloud Architect.",
       "aiReviewEnabled": true,
       "aiReviewMinScore": 80,
+      "offerEmailTemplateId": 3,
+      "declineEmailTemplateId": 7,
       "status": "PUBLISHED",
       "createdAt": "2026-01-03T10:00:00Z",
       "updatedAt": "2026-01-03T10:00:00Z"
@@ -44,6 +50,8 @@
       "description": "We are looking for a Data Engineer.",
       "aiReviewEnabled": false,
       "aiReviewMinScore": 60,
+      "offerEmailTemplateId": 4,
+      "declineEmailTemplateId": 5,
       "status": "CLOSED",
       "createdAt": "2026-01-04T10:00:00Z",
       "updatedAt": "2026-01-04T10:00:00Z"
@@ -54,8 +62,6 @@
       "location": "Budapest",
       "title": "DevOps Engineer",
       "description": "We are looking for a DevOps Engineer.",
-      "aiReviewEnabled": true,
-      "aiReviewMinScore": 75,
       "status": "PUBLISHED",
       "createdAt": "2026-01-05T10:00:00Z",
       "updatedAt": "2026-01-05T10:00:00Z"

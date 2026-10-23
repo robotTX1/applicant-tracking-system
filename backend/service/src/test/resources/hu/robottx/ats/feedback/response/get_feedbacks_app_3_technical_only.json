@@ -1,0 +1,20 @@
+{
+  "content": [
+    {
+      "id": 6,
+      "applicationId": 3,
+      "employeeId": 9,
+      "type": "TECHNICAL",
+      "feedback": "Strong AWS and Kubernetes architecture skills.",
+      "score": 89,
+      "createdAt": "2026-01-14T11:00:00Z",
+      "updatedAt": "2026-01-14T11:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

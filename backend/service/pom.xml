@@ -34,11 +34,14 @@
         <skip-integration-tests>false</skip-integration-tests>
 
         <!--        Dependency Versions        -->
+        <spring-cloud.version>2025.1.4</spring-cloud.version>
         <springdoc-openapi-starter-webmvc-ui.versison>3.1.1</springdoc-openapi-starter-webmvc-ui.versison>
         <rsql-jpa.version>7.0.2</rsql-jpa.version>
         <spring-ai.version>2.0.1</spring-ai.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <oci-sdk.version>3.97.1</oci-sdk.version>
+        <shedlock.version>7.10.1</shedlock.version>
+        <caffeine.version>3.3.1</caffeine.version>
         <datasource-proxy-spring-boot-starter.version>2.0.1</datasource-proxy-spring-boot-starter.version>
         <wiremock.version>3.13.2</wiremock.version>
         <p6spy.version>3.9.1</p6spy.version>
@@ -111,6 +114,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
         <!--        Spring OPS Dependencies        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -130,10 +137,21 @@
             <optional>true</optional>
         </dependency>
         <!--        Spring AI Dependencies        -->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.ai</groupId>-->
-<!--            <artifactId>spring-ai-starter-model-google-genai</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-google-genai</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.swagger.core.v3</groupId>
+                    <artifactId>swagger-annotations-jakarta</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!--        Spring Cloud Circuit Breaker Dependencies        -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+        </dependency>
 
 
         <!--        Code Generator Dependencies        -->
@@ -173,6 +191,27 @@
             <version>${oci-sdk.version}</version>
         </dependency>
 
+
+        <!--        Common Dependencies        -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>${caffeine.version}</version>
+        </dependency>
 
         <!--        Test Dependencies        -->
         <dependency>
@@ -262,6 +301,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty.ee10</groupId>
                 <artifactId>jetty-ee10-bom</artifactId>

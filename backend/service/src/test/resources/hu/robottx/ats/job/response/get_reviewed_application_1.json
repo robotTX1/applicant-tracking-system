@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "jobListingId": 1,
+  "userId": "other-user",
+  "cvDocumentId": 1,
+  "applicantMessage": "I have 8 years of Java and Spring Boot experience.",
+  "aiReview": "Strong Java and Spring Boot candidate.",
+  "aiScore": 88,
+  "status": "AI_REVIEWED",
+  "createdAt": "2026-01-10T08:00:00Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}

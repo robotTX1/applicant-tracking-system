@@ -8,6 +8,8 @@
       "description": "We are looking for a Junior Frontend Developer.",
       "aiReviewEnabled": false,
       "aiReviewMinScore": 50,
+      "offerEmailTemplateId": 1,
+      "declineEmailTemplateId": 2,
       "status": "DRAFT",
       "createdAt": "2026-01-02T10:00:00Z",
       "updatedAt": "2026-01-02T10:00:00Z"

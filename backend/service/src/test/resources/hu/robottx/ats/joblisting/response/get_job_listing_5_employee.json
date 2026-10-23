@@ -1,0 +1,14 @@
+{
+  "id": 5,
+  "companyId": 4,
+  "location": "Budapest",
+  "title": "DevOps Engineer",
+  "description": "We are looking for a DevOps Engineer.",
+  "aiReviewEnabled": true,
+  "aiReviewMinScore": 75,
+  "offerEmailTemplateId": 6,
+  "declineEmailTemplateId": 8,
+  "status": "PUBLISHED",
+  "createdAt": "2026-01-05T10:00:00Z",
+  "updatedAt": "2026-01-05T10:00:00Z"
+}

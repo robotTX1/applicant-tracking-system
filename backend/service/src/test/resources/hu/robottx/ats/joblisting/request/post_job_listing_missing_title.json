@@ -3,5 +3,7 @@
   "location": "Budapest, Hungary",
   "description": "Missing title",
   "aiReviewEnabled": false,
-  "aiReviewMinScore": 50
+  "aiReviewMinScore": 50,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2
 }

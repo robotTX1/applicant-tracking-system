@@ -4,5 +4,7 @@
   "title": "Unauthorized Role",
   "description": "Should fail because user is not manager of company 4.",
   "aiReviewEnabled": false,
-  "aiReviewMinScore": 50
+  "aiReviewMinScore": 50,
+  "offerEmailTemplateId": 6,
+  "declineEmailTemplateId": 8
 }

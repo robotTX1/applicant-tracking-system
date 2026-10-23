@@ -6,6 +6,8 @@
   "description": "Updated job description with more details.",
   "aiReviewEnabled": true,
   "aiReviewMinScore": 85,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2,
   "status": "PUBLISHED",
   "createdAt": "2026-01-01T10:00:00Z",
   "updatedAt": "2025-08-16T13:30:10Z"

@@ -1,0 +1,10 @@
+{
+  "companyId": 1,
+  "location": "Budapest",
+  "title": "Software Engineer with AI",
+  "description": "We are looking for a Software Engineer.",
+  "aiReviewEnabled": true,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2,
+  "status": "DRAFT"
+}

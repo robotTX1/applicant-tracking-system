@@ -26,6 +26,7 @@ import hu.robottx.ats.exception.ResourceNotFoundException;
 import hu.robottx.ats.mapper.ApplicationMapper;
 import hu.robottx.ats.mapper.DocumentMapper;
 import hu.robottx.ats.model.ApplicationSaveRequest;
+import hu.robottx.ats.model.ApplicationStatusUpdateRequest;
 import hu.robottx.ats.model.DocumentResponse;
 import hu.robottx.ats.model.JobApplicationResponse;
 import hu.robottx.ats.model.PagedJobApplicationResponse;
@@ -47,9 +48,19 @@ public class ApplicationServiceImpl implements ApplicationService {
     private static final String APPLICATION_CV_KEY_PREFIX = "applications";
     private static final String JOB_LISTING_NOT_FOUND_MESSAGE = "No job listing with id: %d";
     private static final String APPLICATION_NOT_FOUND_MESSAGE = "No application with id: %d";
+    private static final String AI_REVIEW_SKIPPED_NOTE =
+            "AI review was skipped because the application was manually moved to HR interview scheduled.";
     private static final Set<ApplicationStatus> TECHNICAL_STAGE_STATUSES = EnumSet.of(
             ApplicationStatus.TECHNICAL_INTERVIEW_SCHEDULED,
             ApplicationStatus.TECHNICAL_INTERVIEWED
+    );
+    private static final Set<ApplicationStatus> ALLOWED_TARGET_STATUSES = EnumSet.of(
+            ApplicationStatus.HR_INTERVIEW_SCHEDULED,
+            ApplicationStatus.HR_INTERVIEWED,
+            ApplicationStatus.TECHNICAL_INTERVIEW_SCHEDULED,
+            ApplicationStatus.TECHNICAL_INTERVIEWED,
+            ApplicationStatus.OFFER,
+            ApplicationStatus.DECLINED
     );
 
     private final SecurityService securityService;
@@ -58,6 +69,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final JobListingRepository jobListingRepository;
     private final ApplicationRepository applicationRepository;
     private final DocumentService documentService;
+    private final EmailService emailService;
 
     @Override
     @Transactional(readOnly = true)
@@ -197,6 +209,45 @@ public class ApplicationServiceImpl implements ApplicationService {
                 applicationId, jobListingId, userId);
         Application application = getApplicationForJobListing(jobListingId, applicationId, userId);
         return DocumentMapper.INSTANCE.toModel(application.getCvDocument());
+    }
+
+    @Override
+    @Transactional
+    public JobApplicationResponse updateApplicationStatus(
+            Long applicationId, ApplicationStatusUpdateRequest request) {
+        String userId = securityService.getId();
+        log.debug("Updating status of application {} to {} by user {}",
+                applicationId, request.getStatus(), userId);
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> {
+                    log.debug("No application with id {}", applicationId);
+                    return new ResourceNotFoundException(APPLICATION_NOT_FOUND_MESSAGE.formatted(applicationId));
+                });
+        Long companyId = application.getJobListing().getCompany().getCompanyId();
+        if (!companySecurityService.hasPermission(companyId, userId, CompanyPermission.MANAGE_APPLICATIONS)) {
+            log.debug("User {} does not have permission to update status of application {} in company {}",
+                    userId, applicationId, companyId);
+            throw new ResourceNotFoundException(APPLICATION_NOT_FOUND_MESSAGE.formatted(applicationId));
+        }
+        ApplicationStatus targetStatus = ApplicationMapper.INSTANCE.toDomain(request.getStatus());
+        ApplicationStatus currentStatus = application.getStatus();
+        if (currentStatus == targetStatus) {
+            throw new IllegalArgumentException("Application is already in status: " + targetStatus);
+        }
+        if (!ALLOWED_TARGET_STATUSES.contains(targetStatus)) {
+            throw new IllegalArgumentException("Cannot manually move application to status: " + targetStatus);
+        }
+        if (currentStatus == ApplicationStatus.APPLIED && application.getJobListing().isAiReviewEnabled()) {
+            application.setAiReview(AI_REVIEW_SKIPPED_NOTE);
+        }
+        application.setStatus(targetStatus);
+        application = applicationRepository.saveAndFlush(application);
+        if (targetStatus == ApplicationStatus.OFFER || targetStatus == ApplicationStatus.DECLINED) {
+            emailService.sendApplicationDecisionEmail(application);
+        }
+        log.debug("Updated status of application {} from {} to {} by user {}",
+                applicationId, currentStatus, targetStatus, userId);
+        return ApplicationMapper.INSTANCE.toJobApplicationModel(application);
     }
 
     private Document resolveApplicationCvDocument(User user, MultipartFile file) {

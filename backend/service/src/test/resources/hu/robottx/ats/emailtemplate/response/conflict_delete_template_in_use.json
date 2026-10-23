@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Conflict",
+  "details": "Email template with id 1 cannot be deleted because it is used by a job listing"
+}

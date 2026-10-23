@@ -1,0 +1,9 @@
+{
+  "location": "Budapest",
+  "title": "Updated Engineer with AI",
+  "description": "Updated description.",
+  "aiReviewEnabled": true,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2,
+  "status": "DRAFT"
+}

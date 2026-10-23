@@ -85,6 +85,25 @@ class JobListingsApiDelegateImplTest extends WiremockTest {
                 ));
     }
 
+    @Test
+    @DirtyTest
+    @Sql(statements = "INSERT INTO employees (employee_id, user_id, company_id, role, status, assigned_date, "
+            + "created_at, updated_at) VALUES (10, 'test-user', 4, 'TECHNICAL_INTERVIEWER', 'ACTIVE', "
+            + "'2026-01-01 10:00:00', '2026-01-01 10:00:00', '2026-01-01 10:00:00')",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void testGetJobListingByIdAsTechnicalInterviewerSeesInternalFieldsOnPublished() {
+        restClient.get()
+                .uri(uriById(JOB_LISTING_BY_ID_ENDPOINT, 5L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(response -> assertJson(
+                        "joblisting/response/get_job_listing_5_employee.json",
+                        response
+                ));
+    }
+
     @DirtyTest
     @MethodSource("saveJobListingTestCases")
     @ParameterizedTest(name = "{index} - {0}")
@@ -230,6 +249,12 @@ class JobListingsApiDelegateImplTest extends WiremockTest {
                 Arguments.of("Get job listings with invalid query",
                         VALID_USER_JWT_PATH, null, null, null, "invalidProperty==1",
                         HttpStatus.BAD_REQUEST, "joblisting/response/bad_request_invalid_query.json"),
+                Arguments.of("Get job listings filtering by restricted aiReviewEnabled returns bad request",
+                        VALID_USER_JWT_PATH, null, null, null, "aiReviewEnabled==true",
+                        HttpStatus.BAD_REQUEST, "joblisting/response/bad_request_invalid_query.json"),
+                Arguments.of("Get job listings filtering by restricted aiReviewMinScore returns bad request",
+                        VALID_USER_JWT_PATH, null, null, null, "aiReviewMinScore>=70",
+                        HttpStatus.BAD_REQUEST, "joblisting/response/bad_request_invalid_query.json"),
                 Arguments.of("Get job listings with invalid sort",
                         VALID_USER_JWT_PATH, null, null, "invalidProperty,asc", null,
                         HttpStatus.BAD_REQUEST, "joblisting/response/bad_request_invalid_query.json"),
@@ -303,6 +328,24 @@ class JobListingsApiDelegateImplTest extends WiremockTest {
                         HttpStatus.BAD_REQUEST,
                         null,
                         "joblisting/response/bad_request_closed_status.json"),
+                Arguments.of("Save job listing with non-existent email template returns 404",
+                        VALID_USER_JWT_PATH,
+                        "joblisting/request/post_job_listing_template_not_found.json",
+                        HttpStatus.NOT_FOUND,
+                        null,
+                        "emailtemplate/response/not_found_email_template_999.json"),
+                Arguments.of("Save job listing with wrong email template type returns 400",
+                        VALID_USER_JWT_PATH,
+                        "joblisting/request/post_job_listing_wrong_template_type.json",
+                        HttpStatus.BAD_REQUEST,
+                        null,
+                        "joblisting/response/bad_request_wrong_template_type.json"),
+                Arguments.of("Save job listing with AI review enabled but missing min score returns 400",
+                        VALID_USER_JWT_PATH,
+                        "joblisting/request/post_job_listing_missing_min_score.json",
+                        HttpStatus.BAD_REQUEST,
+                        null,
+                        "joblisting/response/bad_request_ai_review_min_score_required.json"),
                 Arguments.of("Save job listing with validation error",
                         VALID_USER_JWT_PATH,
                         "joblisting/request/post_job_listing_missing_title.json",
@@ -345,6 +388,11 @@ class JobListingsApiDelegateImplTest extends WiremockTest {
                         "joblisting/request/put_job_listing_missing_title.json",
                         HttpStatus.BAD_REQUEST,
                         null),
+                Arguments.of("Update job listing with AI review enabled but missing min score returns 400",
+                        VALID_USER_JWT_PATH, 1L,
+                        "joblisting/request/put_job_listing_missing_min_score.json",
+                        HttpStatus.BAD_REQUEST,
+                        "joblisting/response/bad_request_ai_review_min_score_required.json"),
                 Arguments.of("Update job listing with invalid token returns forbidden",
                         INVALID_USER_JWT_PATH, 1L,
                         "joblisting/request/put_job_listing.json",

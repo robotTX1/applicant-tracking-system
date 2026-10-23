@@ -26,8 +26,12 @@ public class JobListingQueryParamsUtil {
         PROPERTY_MAP.put("location", "location");
         PROPERTY_MAP.put("title", "title");
         PROPERTY_MAP.put("description", "description");
-        PROPERTY_MAP.put("aiReviewEnabled", "aiReviewEnabled");
-        PROPERTY_MAP.put("aiReviewMinScore", "aiReviewMinScore");
+        PROPERTY_MAP.put("aiReviewEnabled", "unsupportedField");
+        PROPERTY_MAP.put("aiReviewMinScore", "unsupportedField");
+        PROPERTY_MAP.put("offerEmailTemplate", "unsupportedField");
+        PROPERTY_MAP.put("declineEmailTemplate", "unsupportedField");
+        PROPERTY_MAP.put("offerEmailTemplateId", "unsupportedField");
+        PROPERTY_MAP.put("declineEmailTemplateId", "unsupportedField");
         PROPERTY_MAP.put("status", "status");
         PROPERTY_MAP.put("createdAt", "createdAt");
         PROPERTY_MAP.put("updatedAt", "updatedAt");

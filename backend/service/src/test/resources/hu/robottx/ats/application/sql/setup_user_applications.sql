@@ -1,6 +1,7 @@
-INSERT INTO job_listings (job_listing_id, company_id, location, title, description, ai_review_enabled,
-                          ai_review_min_score, status, created_at, updated_at)
-VALUES (8, 4, 'Budapest', 'Backend Engineer', 'We are looking for a Backend Engineer.', true, 75,
+INSERT INTO job_listings (job_listing_id, company_id, offer_email_template_id, decline_email_template_id,
+                          location, title, description, ai_review_enabled, ai_review_min_score, status,
+                          created_at, updated_at)
+VALUES (8, 4, 6, 8, 'Budapest', 'Backend Engineer', 'We are looking for a Backend Engineer.', true, 75,
         'PUBLISHED', '2026-01-08 10:00:00', '2026-01-08 10:00:00');
 
 INSERT INTO documents (document_id, original_document_name, mime_type, uploaded_at, object_key, created_at, updated_at)

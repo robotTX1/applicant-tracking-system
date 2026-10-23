@@ -6,6 +6,8 @@
   "description": "Closing this role.",
   "aiReviewEnabled": false,
   "aiReviewMinScore": 60,
+  "offerEmailTemplateId": 4,
+  "declineEmailTemplateId": 5,
   "status": "CLOSED",
   "createdAt": "2026-01-04T10:00:00Z",
   "updatedAt": "2025-08-16T13:30:10Z"

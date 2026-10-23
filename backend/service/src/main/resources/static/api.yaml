@@ -17,7 +17,46 @@ tags:
     description: Endpoints for managing company email templates
   - name: applications
     description: Endpoints for managing job applications
+  - name: feedbacks
+    description: Endpoints for managing job application feedbacks
 paths:
+  /users:
+    get:
+      tags:
+        - users
+      operationId: getUsers
+      summary: Search and list users
+      description: Returns a paginated list of users filtered by query (matching first name, last name, full name, or email) and sorted. Accessible by authenticated users.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedUserResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /users/me:
     get:
       tags:
@@ -1565,6 +1604,320 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /applications/{applicationId}/status:
+    patch:
+      tags:
+        - applications
+      operationId: updateApplicationStatus
+      summary: Update job application status
+      description: >
+        Updates the status of a specific job application. Accessible by company owners, co-owners, and HR managers.
+        Automatically sends an email notification when moved to OFFER or DECLINED.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationStatusUpdateRequest'
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobApplicationResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /applications/{applicationId}/feedbacks:
+    get:
+      tags:
+        - feedbacks
+      operationId: getApplicationFeedbacks
+      summary: Search and list feedbacks for an application
+      description: >
+        Returns a paginated list of feedbacks for the specified job application, filtered and sorted using RSQL.
+        Accessible by company owners, co-owners, and HR managers in all stages, and by technical interviewers
+        (technical feedbacks only) when the application is in the technical interview stage.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: query
+          name: searchAndPageRequest
+          schema:
+            $ref: '#/components/schemas/SearchAndPageRequest'
+          style: form
+          explode: true
+          required: false
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedFeedbackResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - feedbacks
+      operationId: saveApplicationFeedback
+      summary: Create feedback for an application
+      description: >
+        Creates a new feedback entry for the specified application in the current interview stage
+        (HR_INTERVIEWED for HR feedback, TECHNICAL_INTERVIEWED for TECHNICAL feedback).
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackSaveRequest'
+      responses:
+        '201':
+          description: Feedback created successfully
+          headers:
+            Location:
+              description: URI of the created feedback
+              schema:
+                type: string
+                example: /applications/1/feedbacks/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /applications/{applicationId}/feedbacks/{feedbackId}:
+    get:
+      tags:
+        - feedbacks
+      operationId: getApplicationFeedback
+      summary: Get feedback by ID for an application
+      description: Returns a specific feedback entry for the specified job application.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: feedbackId
+          description: ID of the feedback
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - feedbacks
+      operationId: updateApplicationFeedback
+      summary: Update feedback by ID for an application
+      description: >
+        Updates a specific feedback entry for the specified job application.
+        Only the feedback author can update their own feedback while the application is in the corresponding stage.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: feedbackId
+          description: ID of the feedback
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackUpdateRequest'
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - feedbacks
+      operationId: deleteApplicationFeedback
+      summary: Delete feedback by ID for an application
+      description: >
+        Deletes a specific feedback entry for the specified job application.
+        Only the feedback author can delete their own feedback while the application is in the corresponding stage.
+      x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
+      parameters:
+        - in: path
+          name: applicationId
+          description: ID of the application
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - in: path
+          name: feedbackId
+          description: ID of the feedback
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Feedback deleted successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     CurrentUserResponse:
@@ -1600,6 +1953,51 @@ components:
           description: Phone number of the authenticated user
           example: "+36301234567"
           maxLength: 15
+    PagedUserResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    UserResponse:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+      properties:
+        id:
+          type: string
+          title: Unique identifier of the user
+          description: Unique identifier of the user
+          example: test-user
+          readOnly: true
+        firstName:
+          type: string
+          title: First name
+          description: First name of the user
+          example: John
+          maxLength: 60
+        lastName:
+          type: string
+          title: Last name
+          description: Last name of the user
+          example: Doe
+          maxLength: 60
+        email:
+          type: string
+          format: email
+          title: Email address
+          description: Email address of the user
+          example: john.doe@example.com
+          maxLength: 255
     DocumentResponse:
       type: object
       required:
@@ -1937,8 +2335,6 @@ components:
         - location
         - title
         - description
-        - aiReviewEnabled
-        - aiReviewMinScore
         - status
         - createdAt
         - updatedAt
@@ -1977,11 +2373,27 @@ components:
           title: AI review enabled
           description: Whether AI automated review is enabled for applicants
           example: true
+          x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)"
         aiReviewMinScore:
           type: integer
           title: AI review minimum score
           description: Minimum score threshold for AI review
           example: 70
+          x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)"
+        offerEmailTemplateId:
+          type: integer
+          format: int64
+          title: Offer email template ID
+          description: Unique identifier of the offer email template
+          example: 1
+          x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)"
+        declineEmailTemplateId:
+          type: integer
+          format: int64
+          title: Decline email template ID
+          description: Unique identifier of the decline email template
+          example: 2
+          x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)"
         status:
           $ref: '#/components/schemas/JobListingStatus'
         createdAt:
@@ -2006,7 +2418,8 @@ components:
         - title
         - description
         - aiReviewEnabled
-        - aiReviewMinScore
+        - offerEmailTemplateId
+        - declineEmailTemplateId
       properties:
         companyId:
           type: integer
@@ -2034,7 +2447,7 @@ components:
           description: Detailed description of the job listing
           example: "We are looking for a Senior Software Engineer..."
           minLength: 1
-          maxLength: 4000
+          maxLength: 10000
         aiReviewEnabled:
           type: boolean
           title: AI review enabled
@@ -2047,6 +2460,18 @@ components:
           example: 70
           minimum: 0
           maximum: 100
+        offerEmailTemplateId:
+          type: integer
+          format: int64
+          title: Offer email template ID
+          description: Unique identifier of the offer email template
+          example: 1
+        declineEmailTemplateId:
+          type: integer
+          format: int64
+          title: Decline email template ID
+          description: Unique identifier of the decline email template
+          example: 2
         status:
           $ref: '#/components/schemas/JobListingStatus'
     JobListingUpdateRequest:
@@ -2056,7 +2481,8 @@ components:
         - title
         - description
         - aiReviewEnabled
-        - aiReviewMinScore
+        - offerEmailTemplateId
+        - declineEmailTemplateId
         - status
       properties:
         location:
@@ -2079,7 +2505,7 @@ components:
           description: Detailed description of the job listing
           example: "We are looking for a Senior Software Engineer..."
           minLength: 1
-          maxLength: 4000
+          maxLength: 10000
         aiReviewEnabled:
           type: boolean
           title: AI review enabled
@@ -2092,6 +2518,18 @@ components:
           example: 70
           minimum: 0
           maximum: 100
+        offerEmailTemplateId:
+          type: integer
+          format: int64
+          title: Offer email template ID
+          description: Unique identifier of the offer email template
+          example: 1
+        declineEmailTemplateId:
+          type: integer
+          format: int64
+          title: Decline email template ID
+          description: Unique identifier of the decline email template
+          example: 2
         status:
           $ref: '#/components/schemas/JobListingStatus'
     CompanyEmailTemplateType:
@@ -2212,7 +2650,6 @@ components:
       type: string
       enum:
         - APPLIED
-        - AI_REVIEW_SCHEDULED
         - AI_REVIEWED
         - HR_INTERVIEW_SCHEDULED
         - HR_INTERVIEWED
@@ -2220,6 +2657,13 @@ components:
         - TECHNICAL_INTERVIEWED
         - OFFER
         - DECLINED
+    ApplicationStatusUpdateRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/JobApplicationStatus'
     ApplicationSaveRequest:
       type: object
       required:
@@ -2392,6 +2836,125 @@ components:
             $ref: '#/components/schemas/JobApplicationResponse'
         page:
           $ref: '#/components/schemas/PageResponse'
+    ApplicationFeedbackType:
+      type: string
+      enum:
+        - HR
+        - TECHNICAL
+    FeedbackResponse:
+      type: object
+      required:
+        - id
+        - applicationId
+        - employeeId
+        - type
+        - feedback
+        - score
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          title: Unique identifier of the feedback
+          description: Unique identifier of the feedback
+          example: 1
+          readOnly: true
+        applicationId:
+          type: integer
+          format: int64
+          title: Unique identifier of the application
+          description: Unique identifier of the application
+          example: 1
+          readOnly: true
+        employeeId:
+          type: integer
+          format: int64
+          title: Unique identifier of the employee
+          description: Unique identifier of the employee who created the feedback
+          example: 1
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/ApplicationFeedbackType'
+        feedback:
+          type: string
+          title: Feedback text
+          description: Detailed feedback text on the candidate's interview
+          example: "Candidate demonstrated strong problem-solving skills."
+          maxLength: 2000
+        score:
+          type: integer
+          title: Score
+          description: Evaluation score between 0 and 100
+          example: 85
+          minimum: 0
+          maximum: 100
+        createdAt:
+          type: string
+          format: date-time
+          title: Created at
+          description: Date and time when the feedback was created
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          title: Updated at
+          description: Date and time when the feedback was last updated
+          example: "2026-01-01T10:00:00Z"
+          readOnly: true
+    PagedFeedbackResponse:
+      type: object
+      required:
+        - content
+        - page
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedbackResponse'
+        page:
+          $ref: '#/components/schemas/PageResponse'
+    FeedbackSaveRequest:
+      type: object
+      required:
+        - feedback
+        - score
+      properties:
+        feedback:
+          type: string
+          title: Feedback text
+          description: Detailed feedback text on the candidate's interview
+          example: "Candidate demonstrated strong problem-solving skills."
+          minLength: 1
+          maxLength: 2000
+        score:
+          type: integer
+          title: Score
+          description: Evaluation score between 0 and 100
+          example: 85
+          minimum: 0
+          maximum: 100
+    FeedbackUpdateRequest:
+      type: object
+      required:
+        - feedback
+        - score
+      properties:
+        feedback:
+          type: string
+          title: Feedback text
+          description: Detailed feedback text on the candidate's interview
+          example: "Updated feedback text."
+          minLength: 1
+          maxLength: 2000
+        score:
+          type: integer
+          title: Score
+          description: Evaluation score between 0 and 100
+          example: 90
+          minimum: 0
+          maximum: 100
   securitySchemes:
     bearerAuth:
       type: http

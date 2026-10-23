@@ -54,6 +54,8 @@ public interface ApplicationMapper {
 
     JobApplicationStatus toModel(ApplicationStatus status);
 
+    ApplicationStatus toDomain(JobApplicationStatus status);
+
     default ZonedDateTime toZonedDateTime(Instant instant) {
         return instant != null ? instant.atZone(ZoneOffset.UTC) : null;
     }

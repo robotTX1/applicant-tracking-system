@@ -1,0 +1,12 @@
+{
+  "id": 4,
+  "jobListingId": 5,
+  "userId": "third-user",
+  "cvDocumentId": 4,
+  "applicantMessage": "DevOps candidate",
+  "aiReview": "Good CI/CD",
+  "aiScore": 80,
+  "status": "OFFER",
+  "createdAt": "2026-01-13T10:00:00Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}

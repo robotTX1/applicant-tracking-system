@@ -34,6 +34,12 @@ public class VaultSecretProvider implements SecretProvider {
         log.debug("Fetching secrets from the Vault");
         secrets.put(DB_USERNAME_SECRET_NAME, getSecretFromVault(secretsClient, vaultConfig.getDbUsernameSecretName()));
         secrets.put(DB_PASSWORD_SECRET_NAME, getSecretFromVault(secretsClient, vaultConfig.getDbPasswordSecretName()));
+        secrets.put(GEMINI_API_KEY_SECRET_NAME,
+                getSecretFromVault(secretsClient, vaultConfig.getGeminiApiKeySecretName()));
+        secrets.put(MAIL_USERNAME_SECRET_NAME,
+                getSecretFromVault(secretsClient, vaultConfig.getMailUsernameSecretName()));
+        secrets.put(MAIL_PASSWORD_SECRET_NAME,
+                getSecretFromVault(secretsClient, vaultConfig.getMailPasswordSecretName()));
         log.debug("Successfully fetched the secrets from the Vault");
     }
 

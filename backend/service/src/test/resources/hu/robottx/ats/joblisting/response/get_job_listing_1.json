@@ -6,6 +6,8 @@
   "description": "We are looking for a Senior Java Developer.",
   "aiReviewEnabled": true,
   "aiReviewMinScore": 70,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2,
   "status": "PUBLISHED",
   "createdAt": "2026-01-01T10:00:00Z",
   "updatedAt": "2026-01-01T10:00:00Z"

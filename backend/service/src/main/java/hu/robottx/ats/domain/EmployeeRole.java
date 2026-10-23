@@ -20,7 +20,8 @@ public enum EmployeeRole {
             CompanyPermission.CREATE_TECHNICAL_FEEDBACK,
             CompanyPermission.MANAGE_EMAIL_TEMPLATES,
             CompanyPermission.VIEW_ALL_APPLICATIONS,
-            CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS
+            CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS,
+            CompanyPermission.MANAGE_APPLICATIONS
     )),
     HR_MANAGER(EnumSet.of(
             CompanyPermission.VIEW_EMPLOYEES,
@@ -29,7 +30,8 @@ public enum EmployeeRole {
             CompanyPermission.CREATE_HR_FEEDBACK,
             CompanyPermission.MANAGE_EMAIL_TEMPLATES,
             CompanyPermission.VIEW_ALL_APPLICATIONS,
-            CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS
+            CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS,
+            CompanyPermission.MANAGE_APPLICATIONS
     )),
     TECHNICAL_INTERVIEWER(EnumSet.of(
             CompanyPermission.VIEW_EMPLOYEES,

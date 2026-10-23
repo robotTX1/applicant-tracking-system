@@ -19,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import hu.robottx.ats.api.ApplicationsApiDelegate;
 import hu.robottx.ats.domain.DocumentDownload;
 import hu.robottx.ats.model.ApplicationSaveRequest;
+import hu.robottx.ats.model.ApplicationStatusUpdateRequest;
 import hu.robottx.ats.model.DocumentResponse;
 import hu.robottx.ats.model.JobApplicationResponse;
 import hu.robottx.ats.model.PagedJobApplicationResponse;
@@ -86,6 +87,13 @@ public class ApplicationsApiDelegateImpl implements ApplicationsApiDelegate {
     @Override
     public ResponseEntity<DocumentResponse> getJobListingApplicationCvMetadata(Long jobListingId, Long applicationId) {
         return ResponseEntity.ok(applicationService.getJobListingApplicationCvMetadata(jobListingId, applicationId));
+    }
+
+    @Override
+    public ResponseEntity<JobApplicationResponse> updateApplicationStatus(
+            Long applicationId, ApplicationStatusUpdateRequest applicationStatusUpdateRequest) {
+        return ResponseEntity.ok(
+                applicationService.updateApplicationStatus(applicationId, applicationStatusUpdateRequest));
     }
 
     private URI buildUri(Long applicationId) {

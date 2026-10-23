@@ -1,5 +1,6 @@
 package hu.robottx.ats.service;
 
+import hu.robottx.ats.entity.Company;
 import hu.robottx.ats.model.EmailTemplateResponse;
 import hu.robottx.ats.model.EmailTemplateSaveRequest;
 import hu.robottx.ats.model.EmailTemplateUpdateRequest;
@@ -18,5 +19,7 @@ public interface EmailTemplateService {
             EmailTemplateUpdateRequest request);
 
     void deleteEmailTemplate(Long companyId, Long emailTemplateId);
+
+    void createDefaultEmailTemplates(Company company);
 
 }

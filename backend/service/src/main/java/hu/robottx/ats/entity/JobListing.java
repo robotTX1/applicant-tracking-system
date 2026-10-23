@@ -38,13 +38,21 @@ public class JobListing extends BaseEntity {
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "offer_email_template_id", nullable = false)
+    private EmailTemplate offerEmailTemplate;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "decline_email_template_id", nullable = false)
+    private EmailTemplate declineEmailTemplate;
+
     @Column(name = "location", nullable = false)
     private String location;
 
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "description", length = 4000, nullable = false)
+    @Column(name = "description", length = 10000, nullable = false)
     private String description;
 
     @Column(name = "ai_review_enabled", nullable = false)
