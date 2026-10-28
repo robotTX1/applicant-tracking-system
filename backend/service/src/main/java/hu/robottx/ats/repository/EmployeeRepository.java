@@ -22,6 +22,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
 
     Optional<Employee> findByCompanyCompanyIdAndUserUserId(Long companyId, String userId);
 
+    Optional<Employee> findByCompanyCompanyIdAndUserUserIdAndStatus(
+            Long companyId, String userId, EmployeeStatus status);
+
     Optional<Employee> findByEmployeeIdAndCompanyCompanyId(Long employeeId, Long companyId);
 
     @Query("""

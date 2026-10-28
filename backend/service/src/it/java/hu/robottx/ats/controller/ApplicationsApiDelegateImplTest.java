@@ -1,7 +1,11 @@
 package hu.robottx.ats.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
+import static hu.robottx.ats.controller.RestControllerConstants.APPLICATION_STATUS_ENDPOINT;
 import static hu.robottx.ats.controller.RestControllerConstants.CURRENT_USER_APPLICATIONS_ENDPOINT;
 import static hu.robottx.ats.controller.RestControllerConstants.CURRENT_USER_APPLICATION_BY_ID_ENDPOINT;
 import static hu.robottx.ats.controller.RestControllerConstants.CURRENT_USER_APPLICATION_CV_ENDPOINT;
@@ -27,11 +31,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -45,11 +53,15 @@ class ApplicationsApiDelegateImplTest extends WiremockTest {
     private static final byte[] SAMPLE_CV_CONTENT = "%PDF-1.4 sample CV content".getBytes(StandardCharsets.UTF_8);
     private static final byte[] CUSTOM_CV_CONTENT = "%PDF-1.4 custom CV content".getBytes(StandardCharsets.UTF_8);
 
+    @Autowired
+    private JavaMailSender mailSender;
+
     @BeforeEach
     void setUp() {
         mockServer.resetAll();
         createDefaultExpectations();
         cleanStorageDirectory();
+        reset(mailSender);
     }
 
     @Test
@@ -168,7 +180,6 @@ class ApplicationsApiDelegateImplTest extends WiremockTest {
                         "application/response/conflict_already_applied_job_5.json", response));
     }
 
-    @DirtyTest
     @MethodSource("saveApplicationErrorTestCases")
     @ParameterizedTest(name = "{index} - {0}")
     void testSaveApplicationErrors(String description,
@@ -372,7 +383,6 @@ class ApplicationsApiDelegateImplTest extends WiremockTest {
         Path cvPath = Paths.get("target/test-storage/applications/third-user/cv2.pdf");
         Files.createDirectories(cvPath.getParent());
         Files.write(cvPath, SAMPLE_CV_CONTENT);
-
         restClient.get()
                 .uri(uriById(JOB_LISTING_APPLICATIONS_ENDPOINT, 1L))
                 .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
@@ -453,6 +463,136 @@ class ApplicationsApiDelegateImplTest extends WiremockTest {
             responseSpec.expectBody(String.class)
                     .value(response -> assertJson(expectedResponsePath, response));
         }
+    }
+
+    @Test
+    @DirtyTest
+    @Sql(scripts = "classpath:hu/robottx/ats/application/sql/setup_job_listing_applications.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void testUpdateApplicationStatusFromAppliedWithAiReviewEnabledAddsSkippedNote() {
+        restClient.patch()
+                .uri(uriById(APPLICATION_STATUS_ENDPOINT, 1L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .body(loadText("application/request/patch_status_hr_interview_scheduled.json"))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(response -> assertJson(
+                        "application/response/patch_application_1_hr_interview_scheduled.json", response));
+        verifyNoInteractions(mailSender);
+    }
+
+    @Test
+    @DirtyTest
+    @Sql(scripts = "classpath:hu/robottx/ats/application/sql/setup_job_listing_applications.sql",
+            statements = "UPDATE email_templates SET subject = 'Offer for ${jobTitle} at ${companyName}', "
+                    + "body = 'Dear ${firstName} ${lastName}, welcome to ${companyName} in ${location}!' "
+                    + "WHERE email_template_id = 1",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void testUpdateApplicationStatusToOfferSendsSubstitutedEmail() {
+        restClient.patch()
+                .uri(uriById(APPLICATION_STATUS_ENDPOINT, 2L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .body(loadText("application/request/patch_status_offer.json"))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(response -> assertJson("application/response/patch_application_2_offer.json", response));
+        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mailSender).send(captor.capture());
+        SimpleMailMessage sent = captor.getValue();
+        assertThat(sent.getFrom()).isEqualTo("noreply@ats.robottx.hu");
+        assertThat(sent.getTo()).containsExactly("third.user@example.com");
+        assertThat(sent.getSubject()).isEqualTo("Offer for Senior Java Developer at TechCorp");
+        assertThat(sent.getText()).isEqualTo("Dear Third User, welcome to TechCorp in Budapest!");
+    }
+
+    @Test
+    @DirtyTest
+    @Sql(scripts = "classpath:hu/robottx/ats/application/sql/setup_job_listing_applications.sql",
+            statements = "UPDATE email_templates SET subject = 'Update on ${jobTitle} at ${companyName}', "
+                    + "body = 'Dear ${firstName} ${lastName}, thank you for applying to ${companyName} (${location}).' "
+                    + "WHERE email_template_id = 5",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void testUpdateApplicationStatusToDeclinedAsHrManagerSendsSubstitutedEmail() {
+        restClient.patch()
+                .uri(uriById(APPLICATION_STATUS_ENDPOINT, 3L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .body(loadText("application/request/patch_status_declined.json"))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(response -> assertJson("application/response/patch_application_3_declined.json", response));
+        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mailSender).send(captor.capture());
+        SimpleMailMessage sent = captor.getValue();
+        assertThat(sent.getFrom()).isEqualTo("noreply@ats.robottx.hu");
+        assertThat(sent.getTo()).containsExactly("third.user@example.com");
+        assertThat(sent.getSubject()).isEqualTo("Update on Data Engineer at DataFlow Systems");
+        assertThat(sent.getText()).isEqualTo("Dear Third User, thank you for applying to DataFlow Systems (Szeged).");
+    }
+
+    @Test
+    @DirtyTest
+    @Sql(scripts = {
+            "classpath:hu/robottx/ats/application/sql/setup_job_listing_applications.sql",
+            "classpath:hu/robottx/ats/application/sql/add_co_owner_company_4.sql"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void testUpdateApplicationStatusAsCoOwner() {
+        restClient.patch()
+                .uri(uriById(APPLICATION_STATUS_ENDPOINT, 4L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .body(loadText("application/request/patch_status_offer.json"))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class)
+                .value(response -> assertJson(
+                        "application/response/patch_application_4_offer_co_owner.json", response));
+        verify(mailSender).send(org.mockito.ArgumentMatchers.any(SimpleMailMessage.class));
+    }
+
+    @Test
+    @DirtyTest
+    @Sql(scripts = {
+            "classpath:hu/robottx/ats/application/sql/setup_job_listing_applications.sql",
+            "classpath:hu/robottx/ats/application/sql/set_user_technical_interviewer_company_1.sql"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void testTechnicalInterviewerCannotUpdateApplicationStatus() {
+        restClient.patch()
+                .uri(uriById(APPLICATION_STATUS_ENDPOINT, 2L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .body(loadText("application/request/patch_status_offer.json"))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.NOT_FOUND);
+        verifyNoInteractions(mailSender);
+    }
+
+    @DirtyTest
+    @Sql(scripts = "classpath:hu/robottx/ats/application/sql/setup_job_listing_applications.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @MethodSource("updateApplicationStatusErrorTestCases")
+    @ParameterizedTest(name = "{index} - {0}")
+    void testUpdateApplicationStatusErrors(String description,
+            String jwtPath,
+            Long applicationId,
+            String requestPath,
+            HttpStatus expectedStatus,
+            String expectedResponsePath) {
+        var requestSpec = restClient.patch()
+                .uri(uriById(APPLICATION_STATUS_ENDPOINT, applicationId))
+                .body(loadText(requestPath));
+        if (jwtPath != null) {
+            requestSpec.headers(headers -> headers.addAll(createAuthorizedHeaders(jwtPath)));
+        } else {
+            requestSpec.headers(headers -> headers.setContentType(MediaType.APPLICATION_JSON));
+        }
+        var responseSpec = requestSpec.exchange()
+                .expectStatus().isEqualTo(expectedStatus);
+        if (expectedResponsePath != null) {
+            responseSpec.expectBody(String.class)
+                    .value(response -> assertJson(expectedResponsePath, response));
+        }
+        verifyNoInteractions(mailSender);
     }
 
     private void uploadDefaultCv(String filename, byte[] content) {
@@ -922,6 +1062,67 @@ class ApplicationsApiDelegateImplTest extends WiremockTest {
                         INVALID_USER_JWT_PATH,
                         1L,
                         1L,
+                        HttpStatus.FORBIDDEN,
+                        "application/response/forbidden.json"
+                )
+        );
+    }
+
+    private static Stream<Arguments> updateApplicationStatusErrorTestCases() {
+        return Stream.of(
+                Arguments.of(
+                        "Updating to same status returns bad request",
+                        VALID_USER_JWT_PATH,
+                        1L,
+                        "application/request/patch_status_applied.json",
+                        HttpStatus.BAD_REQUEST,
+                        "application/response/bad_request_same_status_applied.json"
+                ),
+                Arguments.of(
+                        "Updating to AI_REVIEWED returns bad request",
+                        VALID_USER_JWT_PATH,
+                        1L,
+                        "application/request/patch_status_ai_reviewed.json",
+                        HttpStatus.BAD_REQUEST,
+                        "application/response/bad_request_cannot_move_to_ai_reviewed.json"
+                ),
+                Arguments.of(
+                        "Updating to APPLIED from another stage returns bad request",
+                        VALID_USER_JWT_PATH,
+                        2L,
+                        "application/request/patch_status_applied.json",
+                        HttpStatus.BAD_REQUEST,
+                        "application/response/bad_request_cannot_move_to_applied.json"
+                ),
+                Arguments.of(
+                        "Updating status of application in company where user has no permission returns not found",
+                        VALID_USER_JWT_PATH,
+                        4L,
+                        "application/request/patch_status_offer.json",
+                        HttpStatus.NOT_FOUND,
+                        "application/response/not_found_application_4.json"
+                ),
+                Arguments.of(
+                        "Updating status of non-existent application returns not found",
+                        VALID_USER_JWT_PATH,
+                        999L,
+                        "application/request/patch_status_offer.json",
+                        HttpStatus.NOT_FOUND,
+                        "application/response/not_found_application_999.json"
+                ),
+                Arguments.of(
+                        "Unauthenticated status update returns unauthorized",
+                        null,
+                        1L,
+                        "application/request/patch_status_offer.json",
+                        HttpStatus.UNAUTHORIZED,
+                        null
+                ),
+                Arguments.of(
+                        "Invalid scope token returns forbidden",
+                        INVALID_USER_JWT_PATH,
+                        1L,
+                        "application/request/patch_status_offer.json",
                         HttpStatus.FORBIDDEN,
                         "application/response/forbidden.json"
                 )

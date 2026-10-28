@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Bad request",
+  "details": "Feedback can only be modified or deleted while the application is in status: HR_INTERVIEWED"
+}

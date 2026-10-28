@@ -3,9 +3,12 @@ package hu.robottx.ats.mapper;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Set;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 import org.springframework.data.domain.Page;
 
@@ -20,9 +23,21 @@ public interface JobListingMapper {
 
     JobListingMapper INSTANCE = Mappers.getMapper(JobListingMapper.class);
 
-    @Mapping(source = "content", target = "content")
-    @Mapping(source = ".", target = "page")
-    PagedJobListingResponse toModel(Page<JobListing> jobListings);
+    default PagedJobListingResponse toModel(Page<JobListing> jobListings, Set<Long> employeeCompanyIds) {
+        if (jobListings == null) {
+            return null;
+        }
+        List<JobListingResponse> content = jobListings.getContent().stream()
+                .map(jl -> employeeCompanyIds != null
+                        && employeeCompanyIds.contains(jl.getCompany().getCompanyId())
+                        ? toModel(jl)
+                        : toPublicModel(jl))
+                .toList();
+        return PagedJobListingResponse.builder()
+                .content(content)
+                .page(PageResponseMapper.INSTANCE.toModel(jobListings))
+                .build();
+    }
 
     @Mapping(source = "jobListingId", target = "id")
     @Mapping(source = "company.companyId", target = "companyId")
@@ -31,12 +46,29 @@ public interface JobListingMapper {
     @Mapping(source = "description", target = "description")
     @Mapping(source = "aiReviewEnabled", target = "aiReviewEnabled")
     @Mapping(source = "aiReviewMinScore", target = "aiReviewMinScore")
+    @Mapping(source = "offerEmailTemplate.emailTemplateId", target = "offerEmailTemplateId")
+    @Mapping(source = "declineEmailTemplate.emailTemplateId", target = "declineEmailTemplateId")
     @Mapping(source = "status", target = "status")
     @Mapping(source = "createdAt", target = "createdAt")
     @Mapping(source = "updatedAt", target = "updatedAt")
     JobListingResponse toModel(JobListing jobListing);
 
     JobListingStatus toModel(JobStatus status);
+
+    @Named("toPublicModel")
+    @Mapping(source = "jobListingId", target = "id")
+    @Mapping(source = "company.companyId", target = "companyId")
+    @Mapping(source = "location", target = "location")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "description", target = "description")
+    @Mapping(target = "aiReviewEnabled", ignore = true)
+    @Mapping(target = "aiReviewMinScore", ignore = true)
+    @Mapping(target = "offerEmailTemplateId", ignore = true)
+    @Mapping(target = "declineEmailTemplateId", ignore = true)
+    @Mapping(source = "status", target = "status")
+    @Mapping(source = "createdAt", target = "createdAt")
+    @Mapping(source = "updatedAt", target = "updatedAt")
+    JobListingResponse toPublicModel(JobListing jobListing);
 
     JobStatus toDomain(JobListingStatus status);
 

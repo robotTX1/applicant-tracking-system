@@ -1,0 +1,8 @@
+Job Offer: ${jobTitle} at ${companyName}
+
+Dear ${firstName} ${lastName},
+
+We are pleased to offer you the position of ${jobTitle} at ${companyName} (${location}).
+
+Best regards,
+${companyName} Team

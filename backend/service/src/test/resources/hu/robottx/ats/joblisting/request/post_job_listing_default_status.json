@@ -4,5 +4,7 @@
   "title": "Backend Software Engineer",
   "description": "Looking for an experienced backend developer with Java skills.",
   "aiReviewEnabled": true,
-  "aiReviewMinScore": 75
+  "aiReviewMinScore": 75,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2
 }

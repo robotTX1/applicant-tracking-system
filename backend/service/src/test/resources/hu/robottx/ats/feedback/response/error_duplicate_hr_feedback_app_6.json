@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Conflict",
+  "details": "Employee has already submitted HR feedback for application with id: 6"
+}

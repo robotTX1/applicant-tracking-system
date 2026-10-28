@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Bad request",
+  "details": "Application is already in status: APPLIED"
+}

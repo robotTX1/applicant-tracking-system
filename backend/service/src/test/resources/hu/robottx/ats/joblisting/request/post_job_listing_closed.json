@@ -5,5 +5,7 @@
   "description": "Attempting to create closed listing.",
   "aiReviewEnabled": false,
   "aiReviewMinScore": 50,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2,
   "status": "CLOSED"
 }

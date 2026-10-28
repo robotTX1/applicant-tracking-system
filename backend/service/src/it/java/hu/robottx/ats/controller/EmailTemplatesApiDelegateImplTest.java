@@ -131,7 +131,7 @@ class EmailTemplatesApiDelegateImplTest extends WiremockTest {
                 .body(loadText("emailtemplate/request/post_email_template.json"))
                 .exchange()
                 .expectStatus().isCreated()
-                .expectHeader().location("/companies/4/email-templates/7");
+                .expectHeader().location("/companies/4/email-templates/9");
     }
 
     @Test
@@ -221,6 +221,7 @@ class EmailTemplatesApiDelegateImplTest extends WiremockTest {
     }
 
     @DirtyTest
+    @Sql(statements = "DELETE FROM job_listings", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @MethodSource("deleteEmailTemplateTestCases")
     @ParameterizedTest(name = "{index} - {0}")
     void testDeleteEmailTemplate(String description,
@@ -245,6 +246,7 @@ class EmailTemplatesApiDelegateImplTest extends WiremockTest {
     @Test
     @DirtyTest
     @Sql(scripts = "classpath:hu/robottx/ats/company/sql/add_co_owner.sql",
+            statements = "DELETE FROM job_listings",
             executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void testDeleteEmailTemplateAsCoOwner() {
         restClient.delete()
@@ -252,6 +254,37 @@ class EmailTemplatesApiDelegateImplTest extends WiremockTest {
                 .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
                 .exchange()
                 .expectStatus().isNoContent();
+    }
+
+    @Test
+    @DirtyTest
+    void testDeleteEmailTemplateInUseReturnsConflict() {
+        restClient.delete()
+                .uri(uriByCompanyIdAndTemplateId(EMAIL_TEMPLATE_BY_ID_ENDPOINT, 1L, 1L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                .expectBody(String.class)
+                .value(response -> assertJson(
+                        "emailtemplate/response/conflict_delete_template_in_use.json",
+                        response
+                ));
+    }
+
+    @Test
+    @DirtyTest
+    void testUpdateEmailTemplateChangeTypeInUseReturnsConflict() {
+        restClient.put()
+                .uri(uriByCompanyIdAndTemplateId(EMAIL_TEMPLATE_BY_ID_ENDPOINT, 1L, 1L))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .body(loadText("emailtemplate/request/put_email_template_change_type.json"))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.CONFLICT)
+                .expectBody(String.class)
+                .value(response -> assertJson(
+                        "emailtemplate/response/conflict_change_type_template_in_use.json",
+                        response
+                ));
     }
 
     private static Stream<Arguments> getEmailTemplatesTestCases() {
@@ -384,7 +417,7 @@ class EmailTemplatesApiDelegateImplTest extends WiremockTest {
                         1L,
                         "emailtemplate/request/post_email_template.json",
                         HttpStatus.CREATED,
-                        "/companies/1/email-templates/7",
+                        "/companies/1/email-templates/9",
                         "emailtemplate/response/post_email_template_response.json"
                 ),
                 Arguments.of(
@@ -393,7 +426,7 @@ class EmailTemplatesApiDelegateImplTest extends WiremockTest {
                         3L,
                         "emailtemplate/request/post_email_template.json",
                         HttpStatus.CREATED,
-                        "/companies/3/email-templates/7",
+                        "/companies/3/email-templates/9",
                         null
                 ),
                 Arguments.of(

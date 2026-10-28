@@ -5,5 +5,7 @@
   "description": "Listing created by a co-owner of CloudNine.",
   "aiReviewEnabled": true,
   "aiReviewMinScore": 80,
+  "offerEmailTemplateId": 6,
+  "declineEmailTemplateId": 8,
   "status": "DRAFT"
 }

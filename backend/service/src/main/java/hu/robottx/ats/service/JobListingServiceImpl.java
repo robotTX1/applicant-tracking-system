@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import hu.robottx.ats.domain.CompanyPermission;
+import hu.robottx.ats.domain.EmailTemplateType;
 import hu.robottx.ats.domain.JobStatus;
 import hu.robottx.ats.entity.Company;
+import hu.robottx.ats.entity.EmailTemplate;
 import hu.robottx.ats.entity.JobListing;
 import hu.robottx.ats.exception.ResourceNotFoundException;
 import hu.robottx.ats.mapper.JobListingMapper;
@@ -25,6 +27,7 @@ import hu.robottx.ats.model.JobListingUpdateRequest;
 import hu.robottx.ats.model.PagedJobListingResponse;
 import hu.robottx.ats.model.SearchAndPageRequest;
 import hu.robottx.ats.repository.CompanyRepository;
+import hu.robottx.ats.repository.EmailTemplateRepository;
 import hu.robottx.ats.repository.JobListingRepository;
 import hu.robottx.ats.security.service.CompanySecurityService;
 import hu.robottx.ats.security.service.SecurityService;
@@ -36,10 +39,12 @@ import hu.robottx.ats.util.JobListingQueryParamsUtil;
 public class JobListingServiceImpl implements JobListingService {
 
     private static final String JOB_LISTING_NOT_FOUND_MESSAGE = "No job listing with id: %d";
+    private static final String EMAIL_TEMPLATE_NOT_FOUND_MESSAGE = "No email template with id: %d";
 
     private final SecurityService securityService;
     private final CompanySecurityService companySecurityService;
     private final CompanyRepository companyRepository;
+    private final EmailTemplateRepository emailTemplateRepository;
     private final JobListingRepository jobListingRepository;
 
     @Override
@@ -49,12 +54,13 @@ public class JobListingServiceImpl implements JobListingService {
         log.debug("Getting job listings for user {} with request {}", userId, request);
         Set<Long> authorizedCompanyIds =
                 companySecurityService.getCompanyIdsWithPermission(CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS);
+        Set<Long> activeCompanyIds = companySecurityService.getActiveCompanyIds();
         PageRequest pageRequest = PageRequest.of(request.getPageNumber(), request.getPageSize());
         Specification<JobListing> spec = JobListingQueryParamsUtil.createSearchSpecification(
                 authorizedCompanyIds, request);
         try {
             Page<JobListing> jobListings = jobListingRepository.findAll(spec, pageRequest);
-            return JobListingMapper.INSTANCE.toModel(jobListings);
+            return JobListingMapper.INSTANCE.toModel(jobListings, activeCompanyIds);
         } catch (RuntimeException ex) {
             log.debug("Invalid query or sort parameters: query='{}', sort='{}'",
                     request.getQuery(), request.getSort());
@@ -68,31 +74,42 @@ public class JobListingServiceImpl implements JobListingService {
         String userId = securityService.getId();
         log.debug("Getting job listing {} by user {}", jobListingId, userId);
         JobListing jobListing = getJobListing(jobListingId);
+        Long companyId = jobListing.getCompany().getCompanyId();
         if (jobListing.getStatus() != JobStatus.PUBLISHED
-                && !companySecurityService.hasPermission(
-                jobListing.getCompany().getCompanyId(), CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS)) {
+                && !companySecurityService.hasPermission(companyId, CompanyPermission.VIEW_INTERNAL_JOB_LISTINGS)) {
             log.debug("User {} cannot access non-published job listing {}", userId, jobListingId);
             throw new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
         }
-        return JobListingMapper.INSTANCE.toModel(jobListing);
+        boolean isEmployee = companySecurityService.hasPermission(companyId, CompanyPermission.VIEW_EMPLOYEES);
+        return isEmployee
+                ? JobListingMapper.INSTANCE.toModel(jobListing)
+                : JobListingMapper.INSTANCE.toPublicModel(jobListing);
     }
 
     @Override
     @Transactional
     public JobListingResponse saveJobListing(JobListingSaveRequest request) {
         String userId = securityService.getId();
-        log.debug("Creating job listing for company {} by user {}", request.getCompanyId(), userId);
-        companySecurityService.validatePermission(request.getCompanyId(), CompanyPermission.MANAGE_JOB_LISTINGS);
+        Long companyId = request.getCompanyId();
+        log.debug("Creating job listing for company {} by user {}", companyId, userId);
+        companySecurityService.validatePermission(companyId, CompanyPermission.MANAGE_JOB_LISTINGS);
         if (request.getStatus() == JobListingStatus.CLOSED) {
             log.debug("Attempted to create job listing with CLOSED status");
             throw new IllegalArgumentException("Cannot create a job listing with CLOSED status");
         }
+        validateAiReviewConfiguration(request.getAiReviewEnabled(), request.getAiReviewMinScore(), null);
+        EmailTemplate offerTemplate = resolveEmailTemplate(
+                companyId, request.getOfferEmailTemplateId(), EmailTemplateType.OFFER);
+        EmailTemplate declineTemplate = resolveEmailTemplate(
+                companyId, request.getDeclineEmailTemplateId(), EmailTemplateType.DECLINE);
         JobStatus status = request.getStatus() != null
                            ? JobListingMapper.INSTANCE.toDomain(request.getStatus())
                            : JobStatus.DRAFT;
-        Company company = companyRepository.getReferenceById(request.getCompanyId());
+        Company company = companyRepository.getReferenceById(companyId);
         JobListing jobListing = JobListing.builder()
                 .company(company)
+                .offerEmailTemplate(offerTemplate)
+                .declineEmailTemplate(declineTemplate)
                 .location(request.getLocation())
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -102,7 +119,7 @@ public class JobListingServiceImpl implements JobListingService {
                 .build();
         jobListing = jobListingRepository.save(jobListing);
         log.debug("Saved job listing with id {} for company {}",
-                jobListing.getJobListingId(), request.getCompanyId());
+                jobListing.getJobListingId(), companyId);
         return JobListingMapper.INSTANCE.toModel(jobListing);
     }
 
@@ -112,6 +129,14 @@ public class JobListingServiceImpl implements JobListingService {
         String userId = securityService.getId();
         log.debug("Updating job listing {} by user {}", jobListingId, userId);
         JobListing jobListing = getJobListingForManager(jobListingId, userId);
+        validateAiReviewConfiguration(request.getAiReviewEnabled(), request.getAiReviewMinScore(), jobListingId);
+        Long companyId = jobListing.getCompany().getCompanyId();
+        EmailTemplate offerTemplate = resolveEmailTemplate(
+                companyId, request.getOfferEmailTemplateId(), EmailTemplateType.OFFER);
+        EmailTemplate declineTemplate = resolveEmailTemplate(
+                companyId, request.getDeclineEmailTemplateId(), EmailTemplateType.DECLINE);
+        jobListing.setOfferEmailTemplate(offerTemplate);
+        jobListing.setDeclineEmailTemplate(declineTemplate);
         jobListing.setLocation(request.getLocation());
         jobListing.setTitle(request.getTitle());
         jobListing.setDescription(request.getDescription());
@@ -133,6 +158,23 @@ public class JobListingServiceImpl implements JobListingService {
         log.debug("Deleted job listing {} by user {}", jobListingId, userId);
     }
 
+    private EmailTemplate resolveEmailTemplate(Long companyId, Long emailTemplateId, EmailTemplateType expectedType) {
+        EmailTemplate template = emailTemplateRepository
+                .findByEmailTemplateIdAndCompanyCompanyId(emailTemplateId, companyId)
+                .orElseThrow(() -> {
+                    log.debug("No email template with id {} in company {}", emailTemplateId, companyId);
+                    return new ResourceNotFoundException(
+                            EMAIL_TEMPLATE_NOT_FOUND_MESSAGE.formatted(emailTemplateId));
+                });
+        if (template.getType() != expectedType) {
+            log.debug("Email template {} has type {}, expected {}",
+                    emailTemplateId, template.getType(), expectedType);
+            throw new IllegalArgumentException(
+                    "Email template with id %d must be of type %s".formatted(emailTemplateId, expectedType));
+        }
+        return template;
+    }
+
     private JobListing getJobListingForManager(Long jobListingId, String userId) {
         JobListing jobListing = getJobListing(jobListingId);
         if (!companySecurityService.hasPermission(
@@ -150,6 +192,13 @@ public class JobListingServiceImpl implements JobListingService {
                     log.debug("No job listing with id {}", jobListingId);
                     return new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
                 });
+    }
+
+    private void validateAiReviewConfiguration(Boolean aiReviewEnabled, Integer aiReviewMinScore, Long jobListingId) {
+        if (Boolean.TRUE.equals(aiReviewEnabled) && aiReviewMinScore == null) {
+            log.debug("Attempted to enable AI review without setting min score for job listing {}", jobListingId);
+            throw new IllegalArgumentException("AI review can only be enabled when AI review min score is set");
+        }
     }
 
 }

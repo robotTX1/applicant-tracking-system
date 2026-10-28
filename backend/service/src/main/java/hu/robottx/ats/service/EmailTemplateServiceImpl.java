@@ -1,5 +1,7 @@
 package hu.robottx.ats.service;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +15,7 @@ import hu.robottx.ats.domain.CompanyPermission;
 import hu.robottx.ats.domain.EmailTemplateType;
 import hu.robottx.ats.entity.Company;
 import hu.robottx.ats.entity.EmailTemplate;
+import hu.robottx.ats.exception.ConflictException;
 import hu.robottx.ats.exception.ResourceLimitException;
 import hu.robottx.ats.exception.ResourceNotFoundException;
 import hu.robottx.ats.mapper.EmailTemplateMapper;
@@ -21,8 +24,10 @@ import hu.robottx.ats.model.EmailTemplateSaveRequest;
 import hu.robottx.ats.model.EmailTemplateUpdateRequest;
 import hu.robottx.ats.model.PagedEmailTemplateResponse;
 import hu.robottx.ats.model.SearchAndPageRequest;
+import hu.robottx.ats.provider.DefaultEmailTemplateProvider;
 import hu.robottx.ats.repository.CompanyRepository;
 import hu.robottx.ats.repository.EmailTemplateRepository;
+import hu.robottx.ats.repository.JobListingRepository;
 import hu.robottx.ats.security.service.CompanySecurityService;
 import hu.robottx.ats.security.service.SecurityService;
 import hu.robottx.ats.util.EmailTemplateQueryParamsUtil;
@@ -36,11 +41,17 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
     private static final String EMAIL_TEMPLATE_NOT_FOUND_MESSAGE = "No email template with id: %d";
     private static final String TEMPLATE_LIMIT_MESSAGE =
             "Maximum limit of %d email templates reached for type %s";
+    private static final String TEMPLATE_IN_USE_DELETE_MESSAGE =
+            "Email template with id %d cannot be deleted because it is used by a job listing";
+    private static final String TEMPLATE_IN_USE_TYPE_CHANGE_MESSAGE =
+            "Email template with id %d type cannot be changed because it is used by a job listing";
 
     private final SecurityService securityService;
     private final CompanySecurityService companySecurityService;
     private final CompanyRepository companyRepository;
     private final EmailTemplateRepository emailTemplateRepository;
+    private final JobListingRepository jobListingRepository;
+    private final DefaultEmailTemplateProvider defaultEmailTemplateProvider;
 
     @Override
     @Transactional(readOnly = true)
@@ -109,6 +120,11 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
                 log.debug("Company {} has reached maximum templates for type {}", companyId, newType);
                 throw new ResourceLimitException(TEMPLATE_LIMIT_MESSAGE.formatted(MAX_TEMPLATES_PER_TYPE, newType));
             }
+            if (isTemplateInUse(emailTemplateId)) {
+                log.debug("Email template {} is in use by a job listing and its type cannot be changed",
+                        emailTemplateId);
+                throw new ConflictException(TEMPLATE_IN_USE_TYPE_CHANGE_MESSAGE.formatted(emailTemplateId));
+            }
         }
         emailTemplate.setType(newType);
         emailTemplate.setSubject(request.getSubject());
@@ -125,8 +141,38 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         log.debug("Deleting email template {} for company {} by user {}", emailTemplateId, companyId, userId);
         companySecurityService.validatePermission(companyId, CompanyPermission.MANAGE_EMAIL_TEMPLATES);
         EmailTemplate emailTemplate = getEmailTemplate(companyId, emailTemplateId);
+        if (isTemplateInUse(emailTemplateId)) {
+            log.debug("Email template {} is in use by a job listing and cannot be deleted", emailTemplateId);
+            throw new ConflictException(TEMPLATE_IN_USE_DELETE_MESSAGE.formatted(emailTemplateId));
+        }
         emailTemplateRepository.delete(emailTemplate);
         log.debug("Deleted email template {} for company {}", emailTemplateId, companyId);
+    }
+
+    @Override
+    @Transactional
+    public void createDefaultEmailTemplates(Company company) {
+        log.debug("Creating default email templates for company {}", company.getCompanyId());
+        EmailTemplate offerTemplate = EmailTemplate.builder()
+                .company(company)
+                .type(EmailTemplateType.OFFER)
+                .subject(defaultEmailTemplateProvider.getOfferSubject())
+                .body(defaultEmailTemplateProvider.getOfferBody())
+                .build();
+        EmailTemplate declineTemplate = EmailTemplate.builder()
+                .company(company)
+                .type(EmailTemplateType.DECLINE)
+                .subject(defaultEmailTemplateProvider.getDeclineSubject())
+                .body(defaultEmailTemplateProvider.getDeclineBody())
+                .build();
+        emailTemplateRepository.saveAll(List.of(offerTemplate, declineTemplate));
+        log.debug("Saved default email templates for company {}", company.getCompanyId());
+    }
+
+    private boolean isTemplateInUse(Long emailTemplateId) {
+        return jobListingRepository
+                .existsByOfferEmailTemplateEmailTemplateIdOrDeclineEmailTemplateEmailTemplateId(
+                        emailTemplateId, emailTemplateId);
     }
 
     private EmailTemplate getEmailTemplate(Long companyId, Long emailTemplateId) {

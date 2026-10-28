@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Bad request",
+  "details": "Feedback can only be added when application is in HR_INTERVIEWED or TECHNICAL_INTERVIEWED status"
+}

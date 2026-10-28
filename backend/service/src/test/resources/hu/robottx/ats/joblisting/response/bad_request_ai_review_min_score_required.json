@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Bad request",
+  "details": "AI review can only be enabled when AI review min score is set"
+}

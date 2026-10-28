@@ -31,5 +31,11 @@ public class RestControllerConstants {
             JOB_LISTING_APPLICATION_CV_ENDPOINT + "/metadata";
     public static final String EMAIL_TEMPLATES_ENDPOINT = COMPANIES_ENDPOINT + "/{companyId}/email-templates";
     public static final String EMAIL_TEMPLATE_BY_ID_ENDPOINT = EMAIL_TEMPLATES_ENDPOINT + "/{emailTemplateId}";
+    public static final String APPLICATIONS_ENDPOINT = "/applications";
+    public static final String APPLICATION_BY_ID_ENDPOINT = APPLICATIONS_ENDPOINT + "/{applicationId}";
+    public static final String APPLICATION_STATUS_ENDPOINT = APPLICATION_BY_ID_ENDPOINT + "/status";
+    public static final String APPLICATION_FEEDBACKS_ENDPOINT = APPLICATION_BY_ID_ENDPOINT + "/feedbacks";
+    public static final String APPLICATION_FEEDBACK_BY_ID_ENDPOINT =
+            APPLICATION_FEEDBACKS_ENDPOINT + "/{feedbackId}";
 
 }

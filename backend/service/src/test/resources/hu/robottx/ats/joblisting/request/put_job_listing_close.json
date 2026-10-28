@@ -4,5 +4,7 @@
   "description": "Closing this role.",
   "aiReviewEnabled": false,
   "aiReviewMinScore": 60,
+  "offerEmailTemplateId": 4,
+  "declineEmailTemplateId": 5,
   "status": "CLOSED"
 }

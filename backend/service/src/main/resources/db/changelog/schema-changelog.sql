@@ -64,23 +64,45 @@ CREATE TABLE employees
         REFERENCES companies (company_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+--changeset Csaba Csíkos:create-email_templates-table
+--Creates Email Templates table
+--rollback DROP TABLE email_templates
+CREATE TABLE email_templates
+(
+    email_template_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    company_id        BIGINT        NOT NULL,
+    type              VARCHAR(50)   NOT NULL,
+    subject           VARCHAR(255)  NOT NULL,
+    body              VARCHAR(2000) NOT NULL,
+    created_at        DATETIME(6)   NOT NULL,
+    updated_at        DATETIME(6)   NOT NULL,
+    CONSTRAINT fk_email_templates_company_id_companies FOREIGN KEY (company_id)
+        REFERENCES companies (company_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 --changeset Csaba Csíkos:create-job_listings-table
 --Creates Job Listings table
 --rollback DROP TABLE job_listings
 CREATE TABLE job_listings
 (
-    job_listing_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    company_id          BIGINT        NOT NULL,
-    location            VARCHAR(255)  NOT NULL,
-    title               VARCHAR(255)  NOT NULL,
-    description         VARCHAR(4000) NOT NULL,
-    ai_review_enabled   BOOLEAN       NOT NULL,
-    ai_review_min_score INT           NOT NULL,
-    status              VARCHAR(50)   NOT NULL,
-    created_at          DATETIME(6)   NOT NULL,
-    updated_at          DATETIME(6)   NOT NULL,
+    job_listing_id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    company_id                BIGINT         NOT NULL,
+    offer_email_template_id   BIGINT         NOT NULL,
+    decline_email_template_id BIGINT         NOT NULL,
+    location                  VARCHAR(255)   NOT NULL,
+    title                     VARCHAR(255)   NOT NULL,
+    description               VARCHAR(10000) NOT NULL,
+    ai_review_enabled         BOOLEAN        NOT NULL,
+    ai_review_min_score       INT,
+    status                    VARCHAR(50)    NOT NULL,
+    created_at                DATETIME(6)    NOT NULL,
+    updated_at                DATETIME(6)    NOT NULL,
     CONSTRAINT fk_companies_company_id_job_listings FOREIGN KEY (company_id)
-        REFERENCES companies (company_id) ON DELETE CASCADE ON UPDATE CASCADE
+        REFERENCES companies (company_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_job_listings_offer_email_template_id_email_templates FOREIGN KEY (offer_email_template_id)
+        REFERENCES email_templates (email_template_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_job_listings_decline_email_template_id_email_templates FOREIGN KEY (decline_email_template_id)
+        REFERENCES email_templates (email_template_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 --changeset Csaba Csíkos:create-applications-table
@@ -113,7 +135,7 @@ CREATE TABLE feedbacks
 (
     feedback_id    BIGINT AUTO_INCREMENT PRIMARY KEY,
     employee_id    BIGINT        NOT NULL,
-    application_id BIGINT,
+    application_id BIGINT        NOT NULL,
     type           VARCHAR(50)   NOT NULL,
     feedback       VARCHAR(2000) NOT NULL,
     score          INT           NOT NULL,
@@ -125,18 +147,13 @@ CREATE TABLE feedbacks
         REFERENCES applications (application_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
---changeset Csaba Csíkos:create-email_templates-table
---Creates Email Templates table
---rollback DROP TABLE email_templates
-CREATE TABLE email_templates
+-- changeset Csaba Csíkos:create-shedlock-table
+-- Creates ShedLock table
+-- rollback DROP TABLE shedlock
+CREATE TABLE shedlock
 (
-    email_template_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    company_id        BIGINT        NOT NULL,
-    type              VARCHAR(50)   NOT NULL,
-    subject           VARCHAR(255)  NOT NULL,
-    body              VARCHAR(2000) NOT NULL,
-    created_at        DATETIME(6)   NOT NULL,
-    updated_at        DATETIME(6)   NOT NULL,
-    CONSTRAINT fk_email_templates_company_id_companies FOREIGN KEY (company_id)
-        REFERENCES companies (company_id) ON DELETE CASCADE ON UPDATE CASCADE
+    name       VARCHAR(64)  NOT NULL PRIMARY KEY,
+    lock_until DATETIME(6)  NOT NULL,
+    locked_at  DATETIME(6)  NOT NULL,
+    locked_by  VARCHAR(255) NOT NULL
 );

@@ -6,6 +6,8 @@
   "description": "Updated by co-owner of CloudNine.",
   "aiReviewEnabled": true,
   "aiReviewMinScore": 75,
+  "offerEmailTemplateId": 6,
+  "declineEmailTemplateId": 8,
   "status": "PUBLISHED",
   "createdAt": "2026-01-05T10:00:00Z",
   "updatedAt": "2025-08-16T13:30:10Z"

@@ -6,6 +6,8 @@
   "description": "Looking for an experienced backend developer with Java skills.",
   "aiReviewEnabled": true,
   "aiReviewMinScore": 75,
+  "offerEmailTemplateId": 1,
+  "declineEmailTemplateId": 2,
   "status": "DRAFT",
   "createdAt": "2025-08-16T13:30:10Z",
   "updatedAt": "2025-08-16T13:30:10Z"

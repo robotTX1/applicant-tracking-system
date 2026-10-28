@@ -6,6 +6,8 @@
   "description": "We are looking for a Data Engineer.",
   "aiReviewEnabled": false,
   "aiReviewMinScore": 60,
+  "offerEmailTemplateId": 4,
+  "declineEmailTemplateId": 5,
   "status": "CLOSED",
   "createdAt": "2026-01-04T10:00:00Z",
   "updatedAt": "2026-01-04T10:00:00Z"

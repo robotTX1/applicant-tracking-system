@@ -32,6 +32,7 @@ import hu.robottx.ats.model.PagedCompanyResponse;
 import hu.robottx.ats.model.SearchAndPageRequest;
 import hu.robottx.ats.repository.CompanyRepository;
 import hu.robottx.ats.repository.EmployeeRepository;
+import hu.robottx.ats.repository.JobListingRepository;
 import hu.robottx.ats.repository.UserRepository;
 import hu.robottx.ats.security.service.CompanySecurityService;
 import hu.robottx.ats.security.service.SecurityService;
@@ -52,6 +53,8 @@ public class CompanyServiceImpl implements CompanyService {
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final EmployeeRepository employeeRepository;
+    private final JobListingRepository jobListingRepository;
+    private final EmailTemplateService emailTemplateService;
 
     @Override
     @Transactional(readOnly = true)
@@ -103,6 +106,7 @@ public class CompanyServiceImpl implements CompanyService {
                 .assignedDate(Instant.now(clock))
                 .build();
         employeeRepository.save(owner);
+        emailTemplateService.createDefaultEmailTemplates(company);
         log.debug("Saved company {} with id {} for user {}", company.getName(), company.getCompanyId(), userId);
         return CompanyMapper.INSTANCE.toModel(company);
     }
@@ -133,6 +137,7 @@ public class CompanyServiceImpl implements CompanyService {
         String userId = securityService.getId();
         log.debug("Deleting company {} for user {}", companyId, userId);
         companySecurityService.validatePermission(companyId, CompanyPermission.DELETE_COMPANY);
+        jobListingRepository.deleteByCompanyId(companyId);
         companyRepository.deleteById(companyId);
         log.debug("Deleted company {} for user {}", companyId, userId);
     }

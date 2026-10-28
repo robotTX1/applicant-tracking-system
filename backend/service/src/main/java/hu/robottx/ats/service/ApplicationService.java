@@ -4,6 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import hu.robottx.ats.domain.DocumentDownload;
 import hu.robottx.ats.model.ApplicationSaveRequest;
+import hu.robottx.ats.model.ApplicationStatusUpdateRequest;
 import hu.robottx.ats.model.DocumentResponse;
 import hu.robottx.ats.model.JobApplicationResponse;
 import hu.robottx.ats.model.PagedJobApplicationResponse;
@@ -32,5 +33,7 @@ public interface ApplicationService {
     DocumentDownload getJobListingApplicationCv(Long jobListingId, Long applicationId);
 
     DocumentResponse getJobListingApplicationCvMetadata(Long jobListingId, Long applicationId);
+
+    JobApplicationResponse updateApplicationStatus(Long applicationId, ApplicationStatusUpdateRequest request);
 
 }

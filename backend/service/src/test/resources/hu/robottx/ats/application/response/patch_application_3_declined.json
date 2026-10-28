@@ -1,0 +1,12 @@
+{
+  "id": 3,
+  "jobListingId": 4,
+  "userId": "third-user",
+  "cvDocumentId": 3,
+  "applicantMessage": "Applying for Data Engineer",
+  "aiReview": null,
+  "aiScore": null,
+  "status": "DECLINED",
+  "createdAt": "2026-01-12T10:00:00Z",
+  "updatedAt": "2025-08-16T13:30:10Z"
+}

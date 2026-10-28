@@ -1,5 +1,7 @@
 package hu.robottx.ats.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static hu.robottx.ats.controller.RestControllerConstants.COMPANIES_ENDPOINT;
 import static hu.robottx.ats.controller.RestControllerConstants.COMPANY_BY_ID_ENDPOINT;
 
@@ -10,15 +12,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
 
 import hu.robottx.ats.WiremockTest;
 import hu.robottx.ats.annotation.DirtyTest;
+import hu.robottx.ats.domain.EmailTemplateType;
 import hu.robottx.ats.model.CompanyRole;
+import hu.robottx.ats.repository.EmailTemplateRepository;
 
 class CompaniesApiDelegateImplTest extends WiremockTest {
+
+    @Autowired
+    private EmailTemplateRepository emailTemplateRepository;
 
     @BeforeEach
     void setUp() {
@@ -104,6 +112,22 @@ class CompaniesApiDelegateImplTest extends WiremockTest {
                         "company/response/post_company_resource_limit_reached.json",
                         response
                 ));
+    }
+
+    @Test
+    @DirtyTest
+    void testSaveCompanyGeneratesDefaultEmailTemplates() {
+        restClient.post()
+                .uri(COMPANIES_ENDPOINT)
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .body(loadText("company/request/post_company.json"))
+                .exchange()
+                .expectStatus().isCreated()
+                .expectHeader().location(uriById(COMPANY_BY_ID_ENDPOINT, 5L));
+        assertThat(emailTemplateRepository.countByCompanyCompanyIdAndType(5L, EmailTemplateType.OFFER))
+                .isEqualTo(1);
+        assertThat(emailTemplateRepository.countByCompanyCompanyIdAndType(5L, EmailTemplateType.DECLINE))
+                .isEqualTo(1);
     }
 
     @DirtyTest

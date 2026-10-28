@@ -1,0 +1,40 @@
+{
+  "content": [
+    {
+      "id": 2,
+      "applicationId": 2,
+      "employeeId": 6,
+      "type": "HR",
+      "feedback": "Passed HR screening with flying colors.",
+      "score": 90,
+      "createdAt": "2026-01-11T10:00:00Z",
+      "updatedAt": "2026-01-11T10:00:00Z"
+    },
+    {
+      "id": 3,
+      "applicationId": 2,
+      "employeeId": 1,
+      "type": "TECHNICAL",
+      "feedback": "Solid Java and system design knowledge.",
+      "score": 88,
+      "createdAt": "2026-01-12T10:00:00Z",
+      "updatedAt": "2026-01-12T10:00:00Z"
+    },
+    {
+      "id": 4,
+      "applicationId": 2,
+      "employeeId": 7,
+      "type": "TECHNICAL",
+      "feedback": "Good coding exercise solution.",
+      "score": 80,
+      "createdAt": "2026-01-13T10:00:00Z",
+      "updatedAt": "2026-01-13T10:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 3,
+    "totalPages": 1
+  }
+}

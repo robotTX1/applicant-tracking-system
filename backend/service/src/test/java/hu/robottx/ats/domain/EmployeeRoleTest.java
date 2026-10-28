@@ -33,6 +33,7 @@ class EmployeeRoleTest extends UnitTest {
         assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.MANAGE_EMAIL_TEMPLATES)).isTrue();
         assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.VIEW_ALL_APPLICATIONS)).isTrue();
         assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS)).isTrue();
+        assertThat(EmployeeRole.CO_OWNER.hasPermission(CompanyPermission.MANAGE_APPLICATIONS)).isTrue();
     }
 
     @Test
@@ -49,6 +50,7 @@ class EmployeeRoleTest extends UnitTest {
         assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.MANAGE_EMAIL_TEMPLATES)).isTrue();
         assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.VIEW_ALL_APPLICATIONS)).isTrue();
         assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS)).isTrue();
+        assertThat(EmployeeRole.HR_MANAGER.hasPermission(CompanyPermission.MANAGE_APPLICATIONS)).isTrue();
     }
 
     @Test
@@ -63,6 +65,7 @@ class EmployeeRoleTest extends UnitTest {
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.CREATE_HR_FEEDBACK)).isFalse();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.MANAGE_EMAIL_TEMPLATES)).isFalse();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.VIEW_ALL_APPLICATIONS)).isFalse();
+        assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.MANAGE_APPLICATIONS)).isFalse();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER.hasPermission(CompanyPermission.VIEW_EMPLOYEES)).isTrue();
         assertThat(EmployeeRole.TECHNICAL_INTERVIEWER
                 .hasPermission(CompanyPermission.CREATE_TECHNICAL_FEEDBACK)).isTrue();
@@ -96,6 +99,8 @@ class EmployeeRoleTest extends UnitTest {
                 .containsExactlyInAnyOrder(EmployeeRole.OWNER, EmployeeRole.CO_OWNER, EmployeeRole.HR_MANAGER);
         assertThat(EmployeeRole.getRolesWith(CompanyPermission.VIEW_TECHNICAL_STAGE_APPLICATIONS))
                 .containsExactlyInAnyOrder(EmployeeRole.values());
+        assertThat(EmployeeRole.getRolesWith(CompanyPermission.MANAGE_APPLICATIONS))
+                .containsExactlyInAnyOrder(EmployeeRole.OWNER, EmployeeRole.CO_OWNER, EmployeeRole.HR_MANAGER);
     }
 
     @Test

@@ -19,5 +19,8 @@ public class VaultConfig {
 
     private String dbUsernameSecretName;
     private String dbPasswordSecretName;
+    private String geminiApiKeySecretName;
+    private String mailUsernameSecretName;
+    private String mailPasswordSecretName;
 
 }

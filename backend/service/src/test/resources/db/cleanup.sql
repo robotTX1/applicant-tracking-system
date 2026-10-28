@@ -8,6 +8,7 @@ TRUNCATE TABLE job_listings;
 TRUNCATE TABLE applications;
 TRUNCATE TABLE feedbacks;
 TRUNCATE TABLE email_templates;
+TRUNCATE TABLE shedlock;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

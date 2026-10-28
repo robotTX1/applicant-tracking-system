@@ -1,0 +1,16 @@
+{
+  "content": [
+    {
+      "id": "other-user",
+      "firstName": "Other",
+      "lastName": "User",
+      "email": "other.user@example.com"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 1,
+    "totalPages": 1
+  }
+}

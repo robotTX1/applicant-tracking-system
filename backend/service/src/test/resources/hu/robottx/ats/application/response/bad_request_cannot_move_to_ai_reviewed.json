@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Bad request",
+  "details": "Cannot manually move application to status: AI_REVIEWED"
+}

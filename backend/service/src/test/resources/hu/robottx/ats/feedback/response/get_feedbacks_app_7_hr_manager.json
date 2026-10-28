@@ -1,0 +1,30 @@
+{
+  "content": [
+    {
+      "id": 8,
+      "applicationId": 7,
+      "employeeId": 3,
+      "type": "HR",
+      "feedback": "Initial HR screening passed.",
+      "score": 84,
+      "createdAt": "2026-01-15T11:00:00Z",
+      "updatedAt": "2026-01-15T11:00:00Z"
+    },
+    {
+      "id": 9,
+      "applicationId": 7,
+      "employeeId": 4,
+      "type": "TECHNICAL",
+      "feedback": "Strong Spark and Kafka knowledge.",
+      "score": 92,
+      "createdAt": "2026-01-15T12:00:00Z",
+      "updatedAt": "2026-01-15T12:00:00Z"
+    }
+  ],
+  "page": {
+    "size": 20,
+    "number": 0,
+    "totalElements": 2,
+    "totalPages": 1
+  }
+}
