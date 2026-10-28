@@ -1,0 +1,50 @@
+name: Build and verify application
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'backend/service/**'
+      - '.github/workflows/pull-request-checks.yaml'
+  push:
+    branches: [ master ]
+    paths:
+      - 'backend/service/**'
+      - '.github/workflows/pull-request-checks.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/service
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven'
+          cache-dependency-path: 'backend/service/pom.xml'
+
+      - name: Build and verify
+        run: mvn --batch-mode --no-transfer-progress verify
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            backend/service/target/surefire-reports/
+            backend/service/target/failsafe-reports/
+          retention-days: 7

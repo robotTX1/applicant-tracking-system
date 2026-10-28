@@ -1,0 +1,108 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'backend/deployment/helm-chart/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Explicit version override (e.g. 1.1.0). If omitted, version is bumped automatically.'
+        required: false
+        type: string
+      bump_type:
+        description: 'Bump type (if explicit version is not provided)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'latest'
+
+      - name: Bump chart version in Chart.yaml
+        id: bump
+        run: |
+          CURRENT_VERSION=$(helm show chart backend/deployment/helm-chart | grep '^version:' | awk '{print $2}')
+          echo "Current chart version: $CURRENT_VERSION"
+
+          if [ -n "${{ inputs.version }}" ]; then
+            NEW_VERSION="${{ inputs.version }}"
+          else
+            BUMP_TYPE="${{ inputs.bump_type || 'patch' }}"
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            if [ "$BUMP_TYPE" = "major" ]; then
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+            elif [ "$BUMP_TYPE" = "minor" ]; then
+              MINOR=$((MINOR + 1))
+              PATCH=0
+            else
+              PATCH=$((PATCH + 1))
+            fi
+            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          fi
+
+          echo "New chart version: $NEW_VERSION"
+          sed -i "s/^version:.*/version: ${NEW_VERSION}/" backend/deployment/helm-chart/Chart.yaml
+
+          CHART_NAME=$(helm show chart backend/deployment/helm-chart | grep '^name:' | awk '{print $2}')
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "name=${CHART_NAME}" >> $GITHUB_OUTPUT
+          echo "tag=helm-v${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Commit and push bumped Chart.yaml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/deployment/helm-chart/Chart.yaml
+          git commit -m "chore(helm): bump chart version to ${{ steps.bump.outputs.version }} [ci skip]"
+          git push
+
+      - name: Package Helm chart
+        run: |
+          mkdir -p dist
+          helm package backend/deployment/helm-chart --destination dist
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.bump.outputs.tag }}"
+          VERSION="${{ steps.bump.outputs.version }}"
+          CHART_NAME="${{ steps.bump.outputs.name }}"
+          PACKAGE="dist/${CHART_NAME}-${VERSION}.tgz"
+
+          gh release create "$TAG" "$PACKAGE" \
+            --title "Helm Chart v${VERSION}" \
+            --notes "Helm chart release for ${CHART_NAME} version ${VERSION}"
+
+      - name: Push to GitHub Container Registry (OCI)
+        env:
+          HELM_EXPERIMENTAL_OCI: 1
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          helm push dist/*.tgz "oci://ghcr.io/${OWNER_LOWER}/charts"
