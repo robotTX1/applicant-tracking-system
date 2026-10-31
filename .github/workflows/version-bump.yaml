@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'backend/service/**'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,7 +14,7 @@ permissions:
 jobs:
   version-bump-and-tag:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    if: "github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[ci skip]')"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
