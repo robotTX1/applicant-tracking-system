@@ -2,11 +2,17 @@
 
 data "oci_mysql_mysql_db_systems" "main" {
   compartment_id = data.oci_identity_compartments.workloads.compartments[0].id
-  state          = "ACTIVE"
+}
+
+locals {
+  active_db_systems = [
+    for db in data.oci_mysql_mysql_db_systems.main.db_systems :
+    db if contains(["ACTIVE", "UPDATING"], db.state)
+  ]
 }
 
 data "oci_mysql_mysql_db_system" "main" {
-  db_system_id = data.oci_mysql_mysql_db_systems.main.db_systems[0].id
+  db_system_id = local.active_db_systems[0].id
 }
 
 locals {

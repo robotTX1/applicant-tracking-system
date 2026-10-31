@@ -150,11 +150,11 @@ resource "helm_release" "keycloak" {
 
       resources = {
         requests = {
-          cpu    = "500m"
+          cpu    = "100m"
           memory = "500Mi"
         }
         limits = {
-          cpu    = "1000m"
+          cpu    = "500m"
           memory = "1000Mi"
         }
       }

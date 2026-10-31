@@ -148,13 +148,13 @@ variable "metrics_server_replicas" {
 variable "backend_chart_version" {
   type        = string
   description = "Version of the ATS backend Helm chart"
-  default     = "1.0.1"
+  default     = "1.0.2"
 }
 
 variable "backend_image_version" {
   type        = string
   description = "Container image version / tag for the ATS backend"
-  default     = "1.0.1"
+  default     = "1.0.2"
 }
 
 variable "backend_replicas" {
