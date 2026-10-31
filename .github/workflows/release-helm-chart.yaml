@@ -2,33 +2,22 @@ name: Release Helm Chart
 
 on:
   push:
-    branches: [ master ]
-    paths:
-      - 'backend/deployment/helm-chart/**'
+    tags:
+      - '*'
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Explicit version override (e.g. 1.1.0). If omitted, version is bumped automatically.'
+      tag:
+        description: 'Tag or version to release (e.g. 1.0.0 or v1.0.0). Defaults to current ref.'
         required: false
         type: string
-      bump_type:
-        description: 'Bump type (if explicit version is not provided)'
-        required: true
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  release:
+  release-helm:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,63 +29,48 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Bump chart version in Chart.yaml
-        id: bump
+      - name: Parse release version from tag
+        id: version
         run: |
-          CURRENT_VERSION=$(helm show chart backend/deployment/helm-chart | grep '^version:' | awk '{print $2}')
-          echo "Current chart version: $CURRENT_VERSION"
-
-          if [ -n "${{ inputs.version }}" ]; then
-            NEW_VERSION="${{ inputs.version }}"
-          else
-            BUMP_TYPE="${{ inputs.bump_type || 'patch' }}"
-            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-            if [ "$BUMP_TYPE" = "major" ]; then
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-            elif [ "$BUMP_TYPE" = "minor" ]; then
-              MINOR=$((MINOR + 1))
-              PATCH=0
-            else
-              PATCH=$((PATCH + 1))
-            fi
-            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-          fi
-
-          echo "New chart version: $NEW_VERSION"
-          sed -i "s/^version:.*/version: ${NEW_VERSION}/" backend/deployment/helm-chart/Chart.yaml
-
+          RAW_TAG="${{ inputs.tag || github.ref_name }}"
+          # Strip potential prefixes like 'v' or 'applicant-tracking-system-'
+          VERSION=$(echo "$RAW_TAG" | sed -E 's/^([a-zA-Z-]+-)?v?//')
           CHART_NAME=$(helm show chart backend/deployment/helm-chart | grep '^name:' | awk '{print $2}')
-          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
-          echo "name=${CHART_NAME}" >> $GITHUB_OUTPUT
-          echo "tag=helm-v${NEW_VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Commit and push bumped Chart.yaml
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backend/deployment/helm-chart/Chart.yaml
-          git commit -m "chore(helm): bump chart version to ${{ steps.bump.outputs.version }} [ci skip]"
-          git push
+          echo "Raw tag: $RAW_TAG"
+          echo "Parsed chart version: $VERSION"
+          echo "Chart name: $CHART_NAME"
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "name=${CHART_NAME}" >> $GITHUB_OUTPUT
+          echo "tag=${RAW_TAG}" >> $GITHUB_OUTPUT
 
       - name: Package Helm chart
         run: |
           mkdir -p dist
-          helm package backend/deployment/helm-chart --destination dist
+          helm package backend/deployment/helm-chart \
+            --version ${{ steps.version.outputs.version }} \
+            --app-version ${{ steps.version.outputs.version }} \
+            --destination dist
 
-      - name: Create GitHub Release
+      - name: Publish to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ steps.bump.outputs.tag }}"
-          VERSION="${{ steps.bump.outputs.version }}"
-          CHART_NAME="${{ steps.bump.outputs.name }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          CHART_NAME="${{ steps.version.outputs.name }}"
           PACKAGE="dist/${CHART_NAME}-${VERSION}.tgz"
 
-          gh release create "$TAG" "$PACKAGE" \
-            --title "Helm Chart v${VERSION}" \
-            --notes "Helm chart release for ${CHART_NAME} version ${VERSION}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "GitHub Release $TAG exists. Uploading Helm package..."
+            gh release upload "$TAG" "$PACKAGE" --clobber
+          else
+            echo "Creating GitHub Release $TAG with Helm package..."
+            gh release create "$TAG" "$PACKAGE" \
+              --title "Release ${TAG}" \
+              --notes "Release ${TAG} including Helm chart artifact."
+          fi
 
       - name: Push to GitHub Container Registry (OCI)
         env:
