@@ -29,11 +29,46 @@ jobs:
           cache: 'maven'
           cache-dependency-path: 'backend/service/pom.xml'
 
-      - name: Release
-        uses: qcastel/github-actions-maven-release@v1.12.43
-        with:
-          git-release-bot-name: "github-actions[bot]"
-          git-release-bot-email: "github-actions[bot]@users.noreply.github.com"
-          maven-project-folder: "backend/service"
-          maven-args: "-Dmaven.javadoc.skip=true -DskipTests -DskipITs -Ddockerfile.skip -DdockerCompose.skip -Dmaven.deploy.skip=true"
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Configure Git and SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$SSH_KEY" ]; then
+            mkdir -p ~/.ssh
+            echo "$SSH_KEY" | base64 -d > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+            git remote set-url origin git@github.com:${{ github.repository }}.git
+          fi
+
+      - name: Release and Bump Version
+        working-directory: backend/service
+        run: |
+          # 1. Read current snapshot version from pom.xml
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "Current project version: $CURRENT_VERSION"
+
+          RELEASE_VERSION="${CURRENT_VERSION%-SNAPSHOT}"
+          echo "Release version to tag: $RELEASE_VERSION"
+
+          # 2. Set release version in pom.xml and tag
+          mvn versions:set -DnewVersion=${RELEASE_VERSION} -DgenerateBackupPoms=false
+          git add pom.xml
+          git commit -m "chore(release): prepare release ${RELEASE_VERSION} [ci skip]"
+          git tag -a "${RELEASE_VERSION}" -m "Release ${RELEASE_VERSION}"
+
+          # 3. Calculate next snapshot version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$RELEASE_VERSION"
+          NEXT_PATCH=$((PATCH + 1))
+          NEXT_VERSION="${MAJOR}.${MINOR}.${NEXT_PATCH}-SNAPSHOT"
+          echo "Next development version: $NEXT_VERSION"
+
+          mvn versions:set -DnewVersion=${NEXT_VERSION} -DgenerateBackupPoms=false
+          git add pom.xml
+          git commit -m "chore(release): prepare for next development iteration ${NEXT_VERSION} [ci skip]"
+
+          # 4. Push commit and release tag
+          git push origin master
+          git push origin "${RELEASE_VERSION}"
