@@ -43,6 +43,9 @@ locals {
   ), "\n", "\\n")
 
   backend_config = {
+    "application.properties" = {
+      "openapi.applicantTrackingSystemAPISpecification.base-path" = "/api/v1"
+    }
     "service.properties" = {
       "service-config.databaseUrl"                  = local.backend_db_url
       "service-config.authorizationServerJwksUri"   = "http://keycloak-http.keycloak.svc.cluster.local/realms/ats/protocol/openid-connect/certs"
