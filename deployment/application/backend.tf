@@ -45,7 +45,7 @@ locals {
   backend_config = {
     "service.properties" = {
       "service-config.databaseUrl"                  = local.backend_db_url
-      "service-config.authorizationServerJwksUri"   = "https://auth.robottx.hu/realms/ats/protocol/openid-connect/certs"
+      "service-config.authorizationServerJwksUri"   = "http://keycloak-http.keycloak.svc.cluster.local/realms/ats/protocol/openid-connect/certs"
       "service-config.authorizationServerIssuerUri" = "https://auth.robottx.hu/realms/ats"
     }
     "vault.properties" = {
@@ -154,7 +154,7 @@ resource "helm_release" "ats_backend" {
   namespace        = kubernetes_namespace_v1.ats.metadata[0].name
   create_namespace = false
   cleanup_on_fail  = true
-  timeout          = 600
+  timeout          = 900
 
   values = [
     yamlencode({
