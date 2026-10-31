@@ -46,6 +46,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
+            type=ref,event=tag
             type=semver,pattern={{version}}
             type=raw,value=latest
             type=raw,value=${{ inputs.tags }},enable=${{ inputs.tags != '' }}
@@ -114,6 +115,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
+            type=ref,event=tag
             type=semver,pattern={{version}}
             type=raw,value=latest
             type=raw,value=${{ inputs.tags }},enable=${{ inputs.tags != '' }}
