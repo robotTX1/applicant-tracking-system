@@ -5,7 +5,7 @@
 
     <groupId>hu.robottx.ats</groupId>
     <artifactId>applicant-tracking-system</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
     <name>Applicant Tracking System</name>
     <description>Applicant Tracking System Backend</description>
     <url>https://github.com/robotTX1/applicant-tracking-system</url>
