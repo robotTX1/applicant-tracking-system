@@ -1,0 +1,36 @@
+replicaCount: 3
+revisionHistoryLimit: 2
+
+image:
+  name: applicant-tracking-system
+  version: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - "ocir-secret"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+config:
+  service.properties:
+    service-config.databaseUrl: "jdbc:mysql://localhost:3306/applicant_tracking_system"
+    service-config.authorizationServerJwksUri: https://auth.robottx.hu/realms/ats/protocol/openid-connect/certs
+    service-config.authorizationServerIssuerUri: https://auth.robottx.hu/realms/ats
+
+ingressRoute:
+  hosts:
+    - "ats.robottx.hu"
+    - "www.ats.robottx.hu"
+  pathPrefix: "/api/v1"
+  tlsSecretName: "ats-backend-production-tls-certificate"
+
+certificate:
+  dnsNames:
+    - "ats.robottx.hu"
+    - "www.ats.robottx.hu"
