@@ -6,6 +6,11 @@ image:
   version: "1.0.0"
   pullPolicy: IfNotPresent
 
+podSecurityContext:
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+
 imagePullSecrets:
   - "ocir-secret"
 

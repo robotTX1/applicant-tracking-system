@@ -20,6 +20,14 @@ variable "resourcemanager_private_endpoint_id" {
   type = string
 }
 
+### Vault ###
+
+variable "vault_name" {
+  type        = string
+  description = "Display name of the OCI KMS Vault in the security compartment"
+  default     = "MainVault"
+}
+
 ### Cert Manager ###
 
 variable "cert_manager_version" {
@@ -134,5 +142,32 @@ variable "metrics_server_replicas" {
   description = "Number of Metrics Server replicas"
   default     = 2
 }
+
+### Applicant Tracking System Backend ###
+
+variable "backend_chart_version" {
+  type        = string
+  description = "Version of the ATS backend Helm chart"
+  default     = "1.0.1"
+}
+
+variable "backend_image_version" {
+  type        = string
+  description = "Container image version / tag for the ATS backend"
+  default     = "1.0.1"
+}
+
+variable "backend_replicas" {
+  type        = number
+  description = "Number of backend replicas"
+  default     = 3
+}
+
+variable "backend_mail_host" {
+  type        = string
+  description = "SMTP host for sending emails"
+  default     = "smtp-relay.brevo.com"
+}
+
 
 
