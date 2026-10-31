@@ -33,6 +33,6 @@ jobs:
         with:
           git-release-bot-name: "github-actions[bot]"
           git-release-bot-email: "github-actions[bot]@users.noreply.github.com"
-          pom-directory: "backend/service"
+          maven-project-folder: "backend/service"
           maven-args: "-Dmaven.javadoc.skip=true -DskipTests -DskipITs -Ddockerfile.skip -DdockerCompose.skip -Dmaven.deploy.skip=true"
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
