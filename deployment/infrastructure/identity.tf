@@ -7,6 +7,14 @@ resource "oci_identity_dynamic_group" "oke_clusters" {
   matching_rule  = "ALL {resource.type = 'cluster', resource.compartment.id = '${oci_identity_compartment.workloads.id}'}"
 }
 
+resource "oci_identity_dynamic_group" "oke_nodes" {
+  compartment_id = var.tenancy_ocid
+  name           = "oke-nodes-dynamic-group"
+  description    = "Dynamic group for OKE worker node instances"
+  matching_rule  = "ALL {instance.compartment.id = '${oci_identity_compartment.workloads.id}'}"
+  defined_tags   = local.default_tags
+}
+
 ### Policies ###
 
 resource "oci_identity_policy" "kms_access" {
@@ -46,6 +54,19 @@ resource "oci_identity_policy" "oke_network" {
     "Allow any-user to manage network-load-balancers in compartment ${oci_identity_compartment.network.name} where request.principal.type = 'cluster'",
     "Allow any-user to manage virtual-network-family in compartment ${oci_identity_compartment.network.name} where request.principal.type = 'cluster'",
     "Allow any-user to manage virtual-network-family in compartment ${oci_identity_compartment.workloads.name} where request.principal.type = 'cluster'"
+  ]
+}
+
+resource "oci_identity_policy" "oke_nodes" {
+  compartment_id = var.tenancy_ocid
+  name           = "oke-nodes-policy"
+  description    = "Allows OKE worker nodes to read application secrets and manage objects in ATS documents bucket"
+  defined_tags   = local.default_tags
+
+  statements = [
+    "Allow dynamic-group ${oci_identity_dynamic_group.oke_nodes.name} to read vaults in compartment ${oci_identity_compartment.security.name}",
+    "Allow dynamic-group ${oci_identity_dynamic_group.oke_nodes.name} to read secret-family in compartment ${oci_identity_compartment.security.name} where any {target.secret.name = 'mysql-ats-username', target.secret.name = 'mysql-ats-password', target.secret.name = 'ats-gemini-api-key', target.secret.name = 'brevo-ats-username', target.secret.name = 'brevo-ats-smtp-key'}",
+    "Allow dynamic-group ${oci_identity_dynamic_group.oke_nodes.name} to manage object-family in compartment ${oci_identity_compartment.workloads.name} where target.bucket.name = '${oci_objectstorage_bucket.workloads.name}'"
   ]
 }
 

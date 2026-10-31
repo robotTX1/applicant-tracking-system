@@ -18,14 +18,5 @@ public class ServiceConfig {
     // OAuth
     private String authorizationServerIssuerUri;
     private String authorizationServerJwksUri;
-    private String authorizationServerTokenEndpoint;
-    private String authorizationServerLogoutEndpoint;
-    private String authorizationServerUsersEndpoint;
-    private String applicationRealmSecretName;
-    private String applicationClientIdSecretName;
-    private String applicationClientSecretSecretName;
-    private String adminRealmSecretName;
-    private String adminClientIdSecretName;
-    private String adminClientSecretSecretName;
 
 }

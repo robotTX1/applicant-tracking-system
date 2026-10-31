@@ -6,6 +6,7 @@ WORKDIR /builder
 # Incremental docker builds will resume here when you change sources
 COPY build_config build_config
 COPY pom.xml .
+COPY lombok.config .
 COPY src src
 RUN mvn package -DskipTests
 
@@ -21,13 +22,13 @@ RUN java -Djarmode=tools -jar application.jar extract --destination extracted
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 # Create user
-RUN addgroup -S ats && adduser -S ats -G ats
+RUN addgroup -S -g 10001 ats && adduser -S -u 10001 -G ats ats
 
 # Copy the extracted layers
 COPY --chown=ats:ats --from=builder /builder/extracted/lib/ ./lib/
 COPY --chown=ats:ats --from=builder /builder/extracted/application.jar ./
 
-USER ats
+USER 10001:10001
 
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UnlockExperimentalVMOptions -XX:+UseCompactObjectHeaders"
 
