@@ -66,7 +66,8 @@ resource "oci_identity_policy" "oke_nodes" {
   statements = [
     "Allow dynamic-group ${oci_identity_dynamic_group.oke_nodes.name} to read vaults in compartment ${oci_identity_compartment.security.name}",
     "Allow dynamic-group ${oci_identity_dynamic_group.oke_nodes.name} to read secret-family in compartment ${oci_identity_compartment.security.name} where any {target.secret.name = 'mysql-ats-username', target.secret.name = 'mysql-ats-password', target.secret.name = 'ats-gemini-api-key', target.secret.name = 'brevo-ats-username', target.secret.name = 'brevo-ats-smtp-key'}",
-    "Allow dynamic-group ${oci_identity_dynamic_group.oke_nodes.name} to manage object-family in compartment ${oci_identity_compartment.workloads.name} where target.bucket.name = '${oci_objectstorage_bucket.workloads.name}'"
+    "Allow dynamic-group ${oci_identity_dynamic_group.oke_nodes.name} to manage object-family in compartment ${oci_identity_compartment.workloads.name} where target.bucket.name = '${oci_objectstorage_bucket.workloads.name}'",
+    "Allow service objectstorage-${var.region} to manage object-family in compartment ${oci_identity_compartment.workloads.name} where target.bucket.name = '${oci_objectstorage_bucket.workloads.name}'"
   ]
 }
 
