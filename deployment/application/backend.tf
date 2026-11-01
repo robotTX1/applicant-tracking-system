@@ -83,7 +83,7 @@ locals {
     }
     "gemini.properties" = {
       # Model & Generation Options
-      "gemini-config.model"           = "gemma-4-31b-it"
+      "gemini-config.model"           = "gemini-3.5-flash-lite"
       "gemini-config.temperature"     = "0.2"
       "gemini-config.maxOutputTokens" = "2048"
 
