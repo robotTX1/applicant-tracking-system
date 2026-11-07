@@ -28,7 +28,7 @@ public class GeminiConfig {
                     + "Please evaluate the attached CV and applicant message for this job listing.";
 
     // Model & Generation Options
-    private String model = "gemini-2.5-flash";
+    private String model = "gemini-3.5-flash-lite";
     private GoogleGenAiThinkingLevel thinkingLevel;
     private Integer thinkingBudget;
     private Double temperature = 0.2;

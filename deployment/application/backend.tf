@@ -43,6 +43,9 @@ locals {
   ), "\n", "\\n")
 
   backend_config = {
+    "application.properties" = {
+      "openapi.applicantTrackingSystemAPISpecification.base-path" = "/api/v1"
+    }
     "service.properties" = {
       "service-config.databaseUrl"                  = local.backend_db_url
       "service-config.authorizationServerJwksUri"   = "http://keycloak-http.keycloak.svc.cluster.local/realms/ats/protocol/openid-connect/certs"
@@ -80,7 +83,7 @@ locals {
     }
     "gemini.properties" = {
       # Model & Generation Options
-      "gemini-config.model"           = "gemma-4-31b-it"
+      "gemini-config.model"           = "gemini-3.5-flash-lite"
       "gemini-config.temperature"     = "0.2"
       "gemini-config.maxOutputTokens" = "2048"
 
