@@ -1,0 +1,304 @@
+<div class="pipeline-page">
+  @if (notFound()) {
+    <div class="state-card" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>search_off</mat-icon>
+      </div>
+      <h1>Job listing not found</h1>
+      <p class="state-description">
+        This job listing doesn't exist, or you're not a member of its company's team.
+      </p>
+      <a
+        mat-flat-button
+        [routerLink]="company() ? ['/companies', companyId(), 'jobs'] : '/companies'"
+      >
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back</span>
+      </a>
+    </div>
+  } @else {
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/companies">My Companies</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <a [routerLink]="['/companies', companyId(), 'jobs']" [title]="company()!.name">{{
+        company()!.name
+      }}</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <span aria-current="page" [title]="jobInCompany()?.title ?? ''">{{
+        jobInCompany()?.title ?? 'Job'
+      }}</span>
+    </nav>
+
+    <header class="page-header">
+      @if (jobInCompany(); as job) {
+        <div class="header-titles">
+          <h1 class="page-title">
+            {{ job.title }}
+            <span class="status-chip" [class]="'status-' + job.status.toLowerCase()">
+              {{ statusLabels[job.status] }}
+            </span>
+          </h1>
+          <p class="page-subtitle">
+            <mat-icon aria-hidden="true">location_on</mat-icon>
+            {{ job.location }}
+          </p>
+        </div>
+        <div class="header-actions">
+          <a mat-stroked-button [routerLink]="['/jobs', job.id]">
+            <mat-icon>visibility</mat-icon>
+            <span>View posting</span>
+          </a>
+          @if (canManage()) {
+            <a
+              mat-stroked-button
+              [routerLink]="['/companies', companyId(), 'jobs', job.id, 'edit']"
+            >
+              <mat-icon>edit</mat-icon>
+              <span>Edit job</span>
+            </a>
+          }
+        </div>
+      } @else {
+        <span class="skeleton line w-40" aria-hidden="true"></span>
+      }
+    </header>
+
+    @if (technicalOnly()) {
+      <p class="read-only-note">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <span
+          >You can see candidates in the technical stages and give technical feedback. HR managers
+          move candidates between stages.</span
+        >
+      </p>
+    }
+
+    <mat-chip-listbox
+      class="stage-tabs"
+      aria-label="Filter applicants by stage"
+      [value]="activeTab().id"
+      (change)="selectTab($event.value)"
+    >
+      @for (tab of tabs(); track tab.id) {
+        <mat-chip-option
+          [value]="tab.id"
+          [selected]="tab.id === activeTab().id"
+          (selectionChange)="keepActiveTabSelected($event)"
+        >
+          {{ tab.label }}
+          @if (applications.hasValue()) {
+            <span class="tab-count">{{ tabCounts().get(tab.id) }}</span>
+          }
+        </mat-chip-option>
+      }
+    </mat-chip-listbox>
+
+    @if (selection().size > 0) {
+      <div class="bulk-bar" role="region" aria-label="Bulk actions">
+        <span class="bulk-count">{{ selection().size }} selected</span>
+        <button
+          mat-flat-button
+          type="button"
+          [matMenuTriggerFor]="bulkMenu"
+          [disabled]="bulkMoving()"
+        >
+          @if (bulkMoving()) {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>drive_file_move</mat-icon>
+          }
+          <span>Move to</span>
+        </button>
+        <mat-menu #bulkMenu="matMenu">
+          @for (target of bulkTargets; track target.id) {
+            <button mat-menu-item type="button" (click)="moveSelected(target)">
+              <mat-icon>arrow_forward</mat-icon>
+              <span>{{ target.title }}</span>
+            </button>
+          }
+          <p class="menu-note">Offers and declines are sent one candidate at a time.</p>
+        </mat-menu>
+        <button mat-button type="button" (click)="clearSelection()" [disabled]="bulkMoving()">
+          Clear
+        </button>
+      </div>
+    }
+
+    @if (applications.error()) {
+      <div class="state-card" role="alert">
+        <div class="state-icon-circle error">
+          <mat-icon>cloud_off</mat-icon>
+        </div>
+        <h2>Couldn't load the applicants</h2>
+        <p class="state-description">Something went wrong while loading the applications.</p>
+        <button mat-flat-button type="button" (click)="applications.reload()">
+          <mat-icon>refresh</mat-icon>
+          <span>Try again</span>
+        </button>
+      </div>
+    } @else if (applications.isLoading()) {
+      <div class="table-card" aria-busy="true" aria-label="Loading applicants">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <div class="skeleton-row" aria-hidden="true">
+            <span class="skeleton line w-40"></span>
+            <span class="skeleton line w-20"></span>
+          </div>
+        }
+      </div>
+    } @else if (rows().length === 0) {
+      <div class="state-card">
+        <div class="state-icon-circle">
+          <mat-icon>group</mat-icon>
+        </div>
+        @if (allApplications().length === 0 && activeTab().id === 'all') {
+          <h2>No applicants yet</h2>
+          <p class="state-description">
+            Applications will show up here as candidates apply for this job.
+          </p>
+        } @else {
+          <h2>No candidates here</h2>
+          <p class="state-description">
+            No applicants are in the {{ activeTab().label }} stage right now.
+          </p>
+        }
+      </div>
+    } @else {
+      <div class="table-card">
+        <table
+          mat-table
+          [dataSource]="rows()"
+          matSort
+          [matSortActive]="sort()"
+          [matSortDirection]="dir()"
+          (matSortChange)="onSort($event)"
+          class="applicants-table"
+          aria-label="Applicants"
+        >
+          <ng-container matColumnDef="select">
+            <th mat-header-cell *matHeaderCellDef class="select-cell">
+              <mat-checkbox
+                [checked]="allSelected()"
+                [indeterminate]="selection().size > 0 && !allSelected()"
+                [disabled]="selectableRows().length === 0"
+                (change)="toggleAll()"
+                aria-label="Select all candidates in this stage"
+              />
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let app"
+              class="select-cell"
+              (click)="$event.stopPropagation()"
+            >
+              <mat-checkbox
+                [checked]="selection().has(app.id)"
+                [disabled]="isDecided(app.status)"
+                (change)="toggle(app)"
+                [attr.aria-label]="'Select ' + applicantName(app)"
+              />
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Candidate</th>
+            <td mat-cell *matCellDef="let app">
+              <button
+                type="button"
+                class="applicant-name"
+                (click)="$event.stopPropagation(); openPanel(app)"
+              >
+                {{ applicantName(app) }}
+              </button>
+              <span class="applicant-email">{{ app.applicantEmail }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="aiScore">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header start="desc">AI score</th>
+            <td mat-cell *matCellDef="let app">
+              @if (app.aiScore !== undefined && app.aiScore !== null) {
+                <span class="ai-score" [class]="'tone-' + scoreTone(app.aiScore)">
+                  <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+                  {{ app.aiScore }}
+                </span>
+              } @else if (app.status === Status.Applied && jobInCompany()?.aiReviewEnabled) {
+                <span class="muted">Reviewing…</span>
+              } @else {
+                <span class="muted" aria-label="No score">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="stage">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Stage</th>
+            <td mat-cell *matCellDef="let app">
+              @let stage = stageOf(app);
+              <span class="stage-chip" [class]="'stage-' + stage.id">
+                @if (isDecided(app.status)) {
+                  <mat-icon aria-hidden="true">lock</mat-icon>
+                }
+                {{ stage.title }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header start="asc">Applied</th>
+            <td mat-cell *matCellDef="let app" class="applied-cell">
+              {{ app.createdAt | relativeTime }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-cell">
+              <span class="cdk-visually-hidden">Actions</span>
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let app"
+              class="actions-cell"
+              (click)="$event.stopPropagation()"
+            >
+              @let locked = isDecided(app.status);
+              <button
+                mat-icon-button
+                type="button"
+                [matMenuTriggerFor]="rowMenu"
+                [attr.aria-label]="'Actions for ' + applicantName(app)"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #rowMenu="matMenu" xPosition="before">
+                <button mat-menu-item type="button" (click)="openPanel(app)">
+                  <mat-icon>open_in_new</mat-icon>
+                  <span>Open details</span>
+                </button>
+                <span class="menu-heading">{{ locked ? 'Reopen and move to' : 'Move to' }}</span>
+                @for (target of moveTargets(app.status); track target.id) {
+                  <button
+                    mat-menu-item
+                    type="button"
+                    (click)="move(app, target)"
+                    [attr.aria-label]="moveLabel(app, target)"
+                  >
+                    <mat-icon>{{ target.sendsEmail ? 'mail' : 'arrow_forward' }}</mat-icon>
+                    <span>{{ target.title }}</span>
+                  </button>
+                }
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+          <tr
+            mat-row
+            *matRowDef="let app; columns: displayedColumns()"
+            class="applicant-row"
+            [class.selected]="selection().has(app.id)"
+            (click)="openPanel(app)"
+          ></tr>
+        </table>
+      </div>
+    }
+  }
+</div>

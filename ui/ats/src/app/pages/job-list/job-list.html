@@ -1,0 +1,180 @@
+<div class="jobs-container">
+  <header class="jobs-header">
+    <h1 class="page-title">Find Jobs</h1>
+    <p class="page-subtitle">Browse open positions and apply in a few clicks.</p>
+  </header>
+
+  <form class="search-bar" role="search" (submit)="$event.preventDefault()">
+    <mat-form-field
+      appearance="outline"
+      class="search-field keyword-field"
+      subscriptSizing="dynamic"
+    >
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Keyword</mat-label>
+      <input
+        matInput
+        [formField]="searchForm.q"
+        placeholder="Title or description"
+        autocomplete="off"
+      />
+      @if (searchForm.q().controlValue()) {
+        <button
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Clear keyword"
+          (click)="clearField('q')"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+
+    <mat-form-field
+      appearance="outline"
+      class="search-field location-field"
+      subscriptSizing="dynamic"
+    >
+      <mat-icon matPrefix>location_on</mat-icon>
+      <mat-label>Location</mat-label>
+      <input
+        matInput
+        [formField]="searchForm.location"
+        placeholder="City or remote"
+        autocomplete="off"
+      />
+      @if (searchForm.location().controlValue()) {
+        <button
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Clear location"
+          (click)="clearField('location')"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+  </form>
+
+  @if (jobs.isLoading()) {
+    <div class="jobs-grid" aria-busy="true" aria-label="Loading jobs">
+      @for (i of skeletons; track i) {
+        <div class="job-card skeleton-card" aria-hidden="true">
+          <div class="skeleton-row">
+            <span class="skeleton avatar"></span>
+            <span class="skeleton-lines">
+              <span class="skeleton line w-70"></span>
+              <span class="skeleton line w-40"></span>
+            </span>
+          </div>
+          <span class="skeleton line w-100"></span>
+          <span class="skeleton line w-90"></span>
+          <span class="skeleton line w-60"></span>
+        </div>
+      }
+    </div>
+  } @else if (jobs.error()) {
+    <div class="state-card error-state" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>cloud_off</mat-icon>
+      </div>
+      <h2>Couldn't load jobs</h2>
+      <p class="state-description">Something went wrong while loading job listings.</p>
+      <button mat-flat-button type="button" (click)="jobs.reload()">
+        <mat-icon>refresh</mat-icon>
+        <span>Try again</span>
+      </button>
+    </div>
+  } @else if (jobs.value(); as result) {
+    @if (result.items.length === 0) {
+      <div class="state-card">
+        <div class="state-icon-circle">
+          <mat-icon>{{ hasFilters() ? 'search_off' : 'work_off' }}</mat-icon>
+        </div>
+        @if (page() > 1 && result.page.totalElements > 0) {
+          <h2>This page doesn't exist</h2>
+          <p class="state-description">There are fewer results than this page number.</p>
+          <button mat-flat-button type="button" (click)="goToFirstPage()">Go to first page</button>
+        } @else if (hasFilters()) {
+          <h2>No matching jobs</h2>
+          <p class="state-description">Try different keywords or another location.</p>
+          <button mat-stroked-button type="button" (click)="clearFilters()">
+            <mat-icon>filter_alt_off</mat-icon>
+            <span>Clear filters</span>
+          </button>
+        } @else {
+          <h2>No open positions yet</h2>
+          <p class="state-description">New jobs show up here as soon as companies publish them.</p>
+        }
+      </div>
+    } @else {
+      <p class="result-count" aria-live="polite">
+        {{ result.page.totalElements }} {{ result.page.totalElements === 1 ? 'job' : 'jobs' }}
+        found
+      </p>
+
+      <div class="jobs-grid">
+        @for (item of result.items; track item.job.id) {
+          <mat-card class="job-card" appearance="outlined">
+            <mat-card-header>
+              <div mat-card-avatar class="company-avatar" aria-hidden="true">
+                {{ getCompanyInitial(item.companyName) }}
+              </div>
+              <mat-card-title class="job-title">
+                <a
+                  [routerLink]="['/jobs', item.job.id]"
+                  [state]="backState()"
+                  class="stretched-link"
+                  [title]="item.job.title"
+                >
+                  {{ item.job.title }}
+                </a>
+              </mat-card-title>
+              <mat-card-subtitle class="job-meta">
+                @if (item.companyName) {
+                  <span class="company-name">{{ item.companyName }}</span>
+                }
+                <span class="job-location">
+                  <mat-icon class="meta-icon" aria-hidden="true">location_on</mat-icon>
+                  {{ item.job.location }}
+                </span>
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content class="card-body">
+              <p class="job-snippet">{{ item.snippet }}</p>
+            </mat-card-content>
+
+            <mat-card-footer class="card-footer">
+              <span class="posted-at">
+                <mat-icon class="meta-icon" aria-hidden="true">schedule</mat-icon>
+                {{ item.job.createdAt | relativeTime }}
+              </span>
+              @if (item.applied) {
+                <span class="applied-chip">
+                  <mat-icon aria-hidden="true">check_circle</mat-icon>
+                  Applied
+                </span>
+              }
+            </mat-card-footer>
+          </mat-card>
+        }
+      </div>
+
+      @if (result.page.totalPages > 1) {
+        <mat-paginator
+          class="jobs-paginator"
+          [length]="result.page.totalElements"
+          [pageIndex]="page() - 1"
+          [pageSize]="pageSize"
+          [hidePageSize]="true"
+          [showFirstLastButtons]="true"
+          (page)="onPage($event)"
+          aria-label="Select page of jobs"
+        />
+      }
+    }
+  }
+</div>

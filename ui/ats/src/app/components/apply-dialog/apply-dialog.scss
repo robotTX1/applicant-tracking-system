@@ -1,0 +1,124 @@
+.apply-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.apply-subtitle {
+  margin: 0 0 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.apply-section {
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font: var(--mat-sys-title-small);
+  margin: 0 0 8px;
+  color: var(--mat-sys-on-surface);
+}
+
+.cv-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cv-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .option-label {
+    display: block;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .option-detail {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+    overflow-wrap: anywhere;
+  }
+}
+
+.cv-note {
+  margin: 0 0 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.file-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 4px 4px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+
+  .file-icon {
+    color: var(--mat-sys-error);
+    flex-shrink: 0;
+  }
+
+  .file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .file-size {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.file-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.file-error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--mat-sys-error);
+}
+
+.message-field {
+  width: 100%;
+}
+
+.submit-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}

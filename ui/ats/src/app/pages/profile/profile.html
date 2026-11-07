@@ -1,0 +1,158 @@
+<div class="profile-container">
+  <header class="page-header">
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">Your account details and the CV you apply with.</p>
+  </header>
+
+  <!-- Personal information -->
+  <section class="profile-card" aria-labelledby="personal-heading">
+    <div class="card-heading">
+      <h2 id="personal-heading">Personal information</h2>
+      @if (accountUrl) {
+        <a mat-stroked-button [href]="accountUrl" target="_blank" rel="noopener noreferrer">
+          <mat-icon>manage_accounts</mat-icon>
+          <span>Manage account</span>
+          <span class="cdk-visually-hidden">(opens in a new tab)</span>
+        </a>
+      }
+    </div>
+
+    @if (user.isLoading()) {
+      <div class="loading-row" role="status">
+        <mat-spinner diameter="24" />
+        <span>Loading your details…</span>
+      </div>
+    } @else if (user.error()) {
+      <div class="inline-error" role="alert">
+        <span>Couldn't load your details.</span>
+        <button mat-button type="button" (click)="user.reload()">Try again</button>
+      </div>
+    } @else if (user.value(); as u) {
+      <div class="identity">
+        <div class="avatar" aria-hidden="true">{{ initials() }}</div>
+        <dl class="details">
+          <div>
+            <dt>Name</dt>
+            <dd>{{ u.firstName }} {{ u.lastName }}</dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd>{{ u.email }}</dd>
+          </div>
+          <div>
+            <dt>Phone</dt>
+            <dd [class.empty]="!u.phoneNumber">{{ u.phoneNumber || 'Not provided' }}</dd>
+          </div>
+        </dl>
+      </div>
+      <p class="card-note">
+        These details come from your sign-in account. Use “Manage account” to change them or your
+        password.
+      </p>
+    }
+  </section>
+
+  <!-- Default CV -->
+  <section class="profile-card" aria-labelledby="cv-heading">
+    <div class="card-heading">
+      <h2 id="cv-heading">Default CV</h2>
+    </div>
+    <p class="card-note top">
+      Used when you apply without attaching a different file. PDF only, up to 5 MB.
+    </p>
+
+    <input
+      #fileInput
+      type="file"
+      class="cdk-visually-hidden"
+      tabindex="-1"
+      aria-hidden="true"
+      [accept]="cvAccept"
+      (change)="onFileSelected(fileInput)"
+    />
+
+    @if (cv.isLoading()) {
+      <div class="loading-row" role="status">
+        <mat-spinner diameter="24" />
+        <span>Checking your CV…</span>
+      </div>
+    } @else if (cv.error()) {
+      <div class="inline-error" role="alert">
+        <span>Couldn't load your CV.</span>
+        <button mat-button type="button" (click)="cv.reload()">Try again</button>
+      </div>
+    } @else if (cv.hasValue() && cv.value(); as current) {
+      <div class="cv-file">
+        <mat-icon class="file-icon" aria-hidden="true">picture_as_pdf</mat-icon>
+        <div class="file-info">
+          <span class="file-name">{{ current.originalDocumentName }}</span>
+          <span class="file-date">Uploaded {{ current.uploadedAt | date: 'medium' }}</span>
+        </div>
+      </div>
+      <div class="cv-actions">
+        <button
+          mat-stroked-button
+          type="button"
+          [disabled]="busy() !== null"
+          (click)="download(current)"
+        >
+          @if (busy() === 'download') {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>download</mat-icon>
+          }
+          <span>Download</span>
+        </button>
+        <button
+          mat-stroked-button
+          type="button"
+          [disabled]="busy() !== null"
+          (click)="fileInput.click()"
+        >
+          @if (busy() === 'upload') {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>upload_file</mat-icon>
+          }
+          <span>Replace</span>
+        </button>
+        <button
+          mat-button
+          type="button"
+          class="delete-button"
+          [disabled]="busy() !== null"
+          (click)="confirmDelete(current)"
+        >
+          @if (busy() === 'delete') {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>delete</mat-icon>
+          }
+          <span>Delete</span>
+        </button>
+      </div>
+    } @else {
+      <div class="no-cv">
+        <mat-icon class="no-cv-icon" aria-hidden="true">description</mat-icon>
+        <p>You haven't uploaded a CV yet. Add one to apply in a single click.</p>
+        <button
+          mat-flat-button
+          type="button"
+          [disabled]="busy() !== null"
+          (click)="fileInput.click()"
+        >
+          @if (busy() === 'upload') {
+            <mat-spinner diameter="18" />
+          } @else {
+            <mat-icon>upload_file</mat-icon>
+          }
+          <span>Upload CV</span>
+        </button>
+      </div>
+    }
+
+    @if (fileError(); as error) {
+      <p class="file-error" role="alert">{{ error }}</p>
+    }
+  </section>
+</div>

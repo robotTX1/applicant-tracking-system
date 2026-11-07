@@ -1,0 +1,153 @@
+// Include theming for Angular Material with `mat.theme()`.
+// This configuration uses official Material Design 3 (M3) palettes generated via
+// `ng generate @angular/material:theme-color`.
+@use '@angular/material' as mat;
+@use 'theme-colors' as m3;
+@use 'markdown';
+@use 'page-states';
+
+// Material 3 Light Theme Config
+$light-theme: (
+  color: (
+    theme-type: light,
+    primary: m3.$primary-palette,
+    tertiary: m3.$tertiary-palette,
+  ),
+  typography: (
+    plain-family: (
+      Inter,
+      sans-serif,
+    ),
+    brand-family: (
+      Inter,
+      sans-serif,
+    ),
+  ),
+  density: 0,
+);
+
+// Material 3 Dark Theme Config
+$dark-theme: (
+  color: (
+    theme-type: dark,
+    primary: m3.$primary-palette,
+    tertiary: m3.$tertiary-palette,
+  ),
+  typography: (
+    plain-family: (
+      Inter,
+      sans-serif,
+    ),
+    brand-family: (
+      Inter,
+      sans-serif,
+    ),
+  ),
+  density: 0,
+);
+
+html {
+  height: 100%;
+  color-scheme: light dark;
+
+  // Default theme: Light theme with crisp white cards & canvas contrast
+  @include mat.theme($light-theme);
+  --mat-menu-container-color: #ffffff;
+  --mat-select-panel-background-color: #ffffff;
+  --app-canvas-bg: #f8fafc;
+  --app-card-bg: #ffffff;
+  --app-card-border: rgba(0, 0, 0, 0.08);
+  --app-chip-bg: #f8fafc;
+  --app-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03);
+  --app-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06);
+
+  // Explicit light mode
+  &.light-theme {
+    color-scheme: light;
+    @include mat.theme($light-theme);
+    --mat-menu-container-color: #ffffff;
+    --mat-select-panel-background-color: #ffffff;
+    --app-canvas-bg: #f8fafc;
+    --app-card-bg: #ffffff;
+    --app-card-border: rgba(0, 0, 0, 0.08);
+    --app-chip-bg: #f8fafc;
+    --app-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03);
+    --app-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  // Explicit dark mode: Pure neutral dark canvas & elevated containers
+  &.dark-theme {
+    color-scheme: dark;
+    @include mat.theme($dark-theme);
+    --mat-menu-container-color: var(--mat-sys-surface-container);
+    --mat-select-panel-background-color: var(--mat-sys-surface-container);
+    --app-canvas-bg: #121212;
+    --app-card-bg: var(--mat-sys-surface-container);
+    --app-card-border: var(--mat-sys-outline-variant);
+    --app-chip-bg: var(--mat-sys-surface-container-highest);
+    --app-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --app-card-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.5);
+  }
+
+  // System dark mode when no explicit theme class is active
+  @media (prefers-color-scheme: dark) {
+    &:not(.light-theme) {
+      color-scheme: dark;
+      @include mat.theme($dark-theme);
+      --mat-menu-container-color: var(--mat-sys-surface-container);
+      --mat-select-panel-background-color: var(--mat-sys-surface-container);
+      --app-canvas-bg: #121212;
+      --app-card-bg: var(--mat-sys-surface-container);
+      --app-card-border: var(--mat-sys-outline-variant);
+      --app-chip-bg: var(--mat-sys-surface-container-highest);
+      --app-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      --app-card-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.5);
+    }
+  }
+}
+
+body {
+  background-color: var(--app-canvas-bg, #f8fafc);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  // Reset user agent margin
+  margin: 0;
+  height: 100%;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+// Clean subtle outline for overlay dropdowns
+.mat-mdc-menu-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  border: 1px solid var(--mat-sys-outline-variant);
+  background-color: var(--mat-select-panel-background-color, #ffffff) !important;
+}
+
+// Full-height dialog docked to the right (application panel on the pipeline board)
+.side-panel {
+  --mat-dialog-container-shape: 0;
+  --mat-dialog-container-max-width: 100vw;
+
+  .mat-mdc-dialog-surface {
+    border-radius: 16px 0 0 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .side-panel .mat-mdc-dialog-surface {
+    border-radius: 0;
+  }
+}

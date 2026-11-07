@@ -1,0 +1,222 @@
+<header class="panel-header">
+  <div class="header-text">
+    <h2 class="applicant-name" mat-dialog-title>{{ name }}</h2>
+    <a class="applicant-email" [href]="'mailto:' + application().applicantEmail">{{
+      application().applicantEmail
+    }}</a>
+  </div>
+  <button mat-icon-button type="button" mat-dialog-close aria-label="Close">
+    <mat-icon>close</mat-icon>
+  </button>
+</header>
+
+<mat-dialog-content class="panel-content">
+  <section class="stage-row" aria-label="Stage">
+    <span class="stage-chip" [class]="'stage-' + column().id">
+      @if (decided()) {
+        <mat-icon aria-hidden="true">lock</mat-icon>
+      }
+      {{ column().title }}
+    </span>
+    <span class="applied-at">Applied {{ application().createdAt | relativeTime }}</span>
+    @if (data.canManage) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="move-button"
+        [matMenuTriggerFor]="moveMenu"
+        [disabled]="moving()"
+      >
+        @if (moving()) {
+          <mat-spinner diameter="18" />
+        } @else {
+          <mat-icon>{{ decided() ? 'lock_open' : 'drive_file_move' }}</mat-icon>
+        }
+        <span>{{ decided() ? 'Reopen' : 'Move to' }}</span>
+      </button>
+      <mat-menu #moveMenu="matMenu" xPosition="before">
+        @for (target of targets(); track target.id) {
+          <button mat-menu-item type="button" (click)="moveTo(target)">
+            <mat-icon>{{ target.sendsEmail ? 'mail' : 'arrow_forward' }}</mat-icon>
+            <span>{{ target.title }}</span>
+          </button>
+        }
+      </mat-menu>
+    }
+  </section>
+
+  <section class="panel-section">
+    <div class="section-heading">
+      <h3>CV</h3>
+      <button mat-stroked-button type="button" (click)="downloadCv()" [disabled]="downloading()">
+        @if (downloading()) {
+          <mat-spinner diameter="18" />
+        } @else {
+          <mat-icon>download</mat-icon>
+        }
+        <span>Download CV</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="panel-section">
+    <h3>Message from the candidate</h3>
+    @if (application().applicantMessage) {
+      <p class="applicant-message">{{ application().applicantMessage }}</p>
+    } @else {
+      <p class="muted">No message.</p>
+    }
+  </section>
+
+  <section class="panel-section">
+    <div class="section-heading">
+      <h3>AI review</h3>
+      @if (application().aiScore !== undefined && application().aiScore !== null) {
+        <span class="ai-score" [class]="'tone-' + scoreTone(application().aiScore!)">
+          <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+          {{ application().aiScore }} / 100
+        </span>
+      }
+    </div>
+    @if (application().aiReview) {
+      <markdown class="markdown-body ai-review" [data]="application().aiReview" />
+    } @else if (application().status === Status.Applied && data.job.aiReviewEnabled) {
+      <p class="muted">The AI review is still in progress.</p>
+    } @else {
+      <p class="muted">No AI review for this application.</p>
+    }
+  </section>
+
+  <section class="panel-section feedback-section" aria-labelledby="feedback-title">
+    <div class="section-heading">
+      <h3 id="feedback-title">Interview feedback</h3>
+      @if (addableType() && editingId() === null) {
+        <button mat-flat-button type="button" (click)="startAdding()">
+          <mat-icon>rate_review</mat-icon>
+          <span>{{ addLabels[addableType()!] }}</span>
+        </button>
+      }
+    </div>
+
+    @if (feedbacks.isLoading()) {
+      <div class="feedback-loading">
+        <mat-spinner diameter="24" />
+      </div>
+    } @else if (feedbacks.error()) {
+      <p class="muted" role="alert">
+        Couldn't load the feedback.
+        <button mat-button type="button" (click)="feedbacks.reload()">Try again</button>
+      </p>
+    } @else {
+      @if (editingId() === 'new') {
+        <ng-container *ngTemplateOutlet="feedbackFormTpl" />
+      }
+
+      <ul class="feedback-list">
+        @for (fb of feedbacks.value(); track fb.id) {
+          <li class="feedback-item">
+            @if (editingId() === fb.id) {
+              <ng-container *ngTemplateOutlet="feedbackFormTpl" />
+            } @else {
+              <div class="feedback-top">
+                <span class="feedback-type">{{ typeLabels[fb.type] }}</span>
+                <span class="feedback-score" [class]="'tone-' + scoreTone(fb.score)"
+                  >{{ fb.score }} / 100</span
+                >
+              </div>
+              <p class="feedback-text">{{ fb.feedback }}</p>
+              <div class="feedback-meta">
+                <span
+                  >{{ authorName(fb) }} · {{ fb.createdAt | relativeTime }}
+                  @if (fb.updatedAt !== fb.createdAt) {
+                    (edited)
+                  }
+                </span>
+                @if (canModify(fb)) {
+                  <span class="feedback-actions">
+                    <button
+                      mat-button
+                      type="button"
+                      (click)="startEditing(fb)"
+                      [disabled]="editingId() !== null"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      mat-button
+                      type="button"
+                      class="delete-button"
+                      (click)="deleteFeedback(fb)"
+                      [disabled]="deletingId() === fb.id || editingId() !== null"
+                    >
+                      Delete
+                    </button>
+                  </span>
+                }
+              </div>
+            }
+          </li>
+        } @empty {
+          @if (editingId() !== 'new') {
+            <li class="muted">No feedback yet.</li>
+          }
+        }
+      </ul>
+
+      @if (feedbackHint(); as hint) {
+        <p class="feedback-hint">
+          <mat-icon aria-hidden="true">info</mat-icon>
+          <span>{{ hint }}</span>
+        </p>
+      }
+    }
+  </section>
+</mat-dialog-content>
+
+<ng-template #feedbackFormTpl>
+  <form class="feedback-form" [formGroup]="feedbackForm" (ngSubmit)="saveFeedback()" novalidate>
+    <mat-form-field appearance="outline" class="score-field">
+      <mat-label>Score</mat-label>
+      <input
+        matInput
+        type="number"
+        inputmode="numeric"
+        min="0"
+        max="100"
+        step="1"
+        formControlName="score"
+        required
+      />
+      <span matTextSuffix class="score-suffix">/ 100</span>
+      @if (feedbackForm.controls.score.invalid) {
+        <mat-error>Enter a whole number from 0 to 100</mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="text-field">
+      <mat-label>Feedback</mat-label>
+      <textarea
+        matInput
+        formControlName="feedback"
+        rows="5"
+        [maxlength]="maxLength"
+        required
+        #feedbackText
+      ></textarea>
+      <mat-hint align="end">{{ feedbackText.value.length }} / {{ maxLength }}</mat-hint>
+      @if (feedbackForm.controls.feedback.invalid) {
+        <mat-error>Feedback is required</mat-error>
+      }
+    </mat-form-field>
+    <div class="form-actions">
+      <button mat-button type="button" (click)="cancelEditing()" [disabled]="saving()">
+        Cancel
+      </button>
+      <button mat-flat-button type="submit" [disabled]="saving()">
+        @if (saving()) {
+          <mat-spinner diameter="18" />
+        }
+        <span>Save feedback</span>
+      </button>
+    </div>
+  </form>
+</ng-template>

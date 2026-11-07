@@ -1,0 +1,139 @@
+.template-dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px 12px;
+
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+
+    &.offer-icon {
+      background: var(--mat-sys-primary-container);
+      color: var(--mat-sys-on-primary-container);
+    }
+
+    &.decline-icon {
+      background: var(--mat-sys-error-container);
+      color: var(--mat-sys-on-error-container);
+    }
+  }
+
+  .header-titles {
+    display: flex;
+    flex-direction: column;
+
+    .dialog-title {
+      margin: 0;
+      padding: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .dialog-subtitle {
+      font-size: 0.8rem;
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+}
+
+.dialog-content {
+  padding: 12px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 70vh;
+}
+
+.meta-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--app-canvas-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 8px;
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.88rem;
+
+    .meta-label {
+      font-weight: 600;
+      color: var(--mat-sys-on-surface-variant);
+      min-width: 65px;
+    }
+
+    .subject-text {
+      font-weight: 500;
+      color: var(--mat-sys-on-surface);
+      word-break: break-word;
+    }
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+
+  &.badge-offer {
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  &.badge-decline {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
+}
+
+.body-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .body-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .body-text {
+    margin: 0;
+    padding: 14px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--app-canvas-bg);
+    border: 1px solid var(--app-card-border);
+    border-radius: 8px;
+    color: var(--mat-sys-on-surface);
+    max-height: 300px;
+    overflow-y: auto;
+  }
+}
+
+.dialog-actions {
+  padding: 12px 24px 16px;
+}

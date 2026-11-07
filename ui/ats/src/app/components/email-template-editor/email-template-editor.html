@@ -1,0 +1,97 @@
+<h2 mat-dialog-title class="editor-title">
+  <mat-icon [class.offer]="isOffer" [class.decline]="!isOffer" aria-hidden="true">{{
+    isOffer ? 'celebration' : 'mark_email_unread'
+  }}</mat-icon>
+  {{ isEdit ? 'Edit' : 'New' }} {{ typeLabel | lowercase }} template
+</h2>
+
+<mat-dialog-content class="editor-content">
+  <form [formGroup]="form" class="editor-form" novalidate (ngSubmit)="save()">
+    <mat-form-field appearance="outline">
+      <mat-label>Subject</mat-label>
+      <input
+        matInput
+        formControlName="subject"
+        [maxlength]="subjectMax"
+        (focus)="rememberField('subject')"
+        #subjectInput
+      />
+      <mat-hint align="end">{{ value().subject.length }} / {{ subjectMax }}</mat-hint>
+      @if (form.controls.subject.invalid) {
+        <mat-error>Subject is required</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="placeholder-bar">
+      <span class="placeholder-label" id="placeholder-label">Insert</span>
+      <div class="placeholder-chips" role="group" aria-labelledby="placeholder-label">
+        @for (p of placeholders; track p.key) {
+          <button
+            type="button"
+            class="placeholder-chip"
+            (mousedown)="$event.preventDefault()"
+            (click)="insert(p)"
+            [matTooltip]="'Inserts ' + '$' + '{' + p.key + '}'"
+          >
+            {{ p.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <mat-form-field appearance="outline" class="body-field">
+      <mat-label>Message</mat-label>
+      <textarea
+        matInput
+        formControlName="body"
+        cdkTextareaAutosize
+        cdkAutosizeMinRows="10"
+        cdkAutosizeMaxRows="22"
+        [maxlength]="bodyMax"
+        (focus)="rememberField('body')"
+        #bodyInput
+      ></textarea>
+      <mat-hint>Sent as plain text.</mat-hint>
+      <mat-hint align="end">{{ value().body.length }} / {{ bodyMax }}</mat-hint>
+      @if (form.controls.body.invalid) {
+        <mat-error>Message is required</mat-error>
+      }
+    </mat-form-field>
+
+    @if (unknown().length > 0) {
+      <p class="warning" role="status">
+        <mat-icon aria-hidden="true">warning</mat-icon>
+        <span
+          >{{ unknown().join(', ') }} {{ unknown().length === 1 ? "isn't a" : "aren't" }} known
+          placeholder{{ unknown().length === 1 ? '' : 's' }} and will be sent exactly as typed. Use
+          the Insert buttons above.</span
+        >
+      </p>
+    }
+  </form>
+
+  <section class="preview" aria-label="Preview with sample details">
+    <h3 class="preview-heading">Preview</h3>
+    <div class="email-preview">
+      <div class="email-subject">{{ previewSubject() || '(No subject)' }}</div>
+      <div class="email-body">{{ previewBody() || '(Empty message)' }}</div>
+    </div>
+    <p class="preview-note">Shown with your name as the candidate and sample job details.</p>
+  </section>
+</mat-dialog-content>
+
+<mat-dialog-actions class="editor-actions">
+  @if (error()) {
+    <p class="save-error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </p>
+  }
+  <button mat-button type="button" (click)="cancel()" [disabled]="saving()">Cancel</button>
+  <button mat-flat-button type="button" (click)="save()" [disabled]="saving()">
+    @if (saving()) {
+      <mat-spinner diameter="18" />
+    }
+    <span>{{ isEdit ? 'Save changes' : 'Create template' }}</span>
+  </button>
+</mat-dialog-actions>

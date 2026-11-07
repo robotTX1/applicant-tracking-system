@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.format-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.format-button {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  margin: 0 6px;
+  background: var(--mat-sys-outline-variant);
+}
+
+.mode-toggle {
+  --mat-button-toggle-height: 36px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+}
+
+// The projected form field fills the width
+.write-pane ::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+// Same footprint as the outlined text field it replaces while previewing
+.preview-pane {
+  min-height: 176px;
+  max-height: 640px;
+  overflow-y: auto;
+  padding: 16px;
+  margin-bottom: 22px; // room the form field reserves for its hint/error line
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-extra-small, 4px);
+  background: var(--mat-sys-surface-container-lowest);
+}
+
+.preview-empty {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-style: italic;
+}

@@ -1,0 +1,161 @@
+<div class="company-hub-page">
+  <div class="hub-container">
+    <!-- Hub Top Header -->
+    <header class="hub-header">
+      <div class="header-titles">
+        <h1 class="page-title">My Companies</h1>
+        <p class="page-subtitle">
+          Manage your organizations, publish job listings, and review candidate applications.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <div class="limit-pill" [class.limit-full]="!canCreateCompany()">
+          <mat-icon class="pill-icon">business</mat-icon>
+          <span>{{ ownedCount() }} / {{ maxCompanies }} Used</span>
+        </div>
+
+        @if (canCreateCompany()) {
+          <a mat-flat-button color="primary" routerLink="/company/register" class="register-btn">
+            <mat-icon>add</mat-icon>
+            <span>Register Company</span>
+          </a>
+        } @else {
+          <button
+            mat-flat-button
+            disabled
+            matTooltip="You have reached the maximum limit of 3 companies allowed per account."
+            class="register-btn"
+          >
+            <mat-icon>add</mat-icon>
+            <span>Register Company</span>
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- Empty State: 0 Companies -->
+    @if (companies().length === 0) {
+      <div class="empty-state-card">
+        <div class="empty-icon-circle">
+          <mat-icon>domain_add</mat-icon>
+        </div>
+        <h2>Start by Registering Your Company</h2>
+        <p class="empty-description">
+          Create your organization profile to unlock the recruiter portal, publish open job
+          positions, and collaborate with your hiring team.
+        </p>
+
+        <div class="feature-pills">
+          <div class="feature-item">
+            <mat-icon>work_outline</mat-icon>
+            <span>Publish Job Listings</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon>people_outline</mat-icon>
+            <span>Collaborate With Team</span>
+          </div>
+          <div class="feature-item">
+            <mat-icon>assignment_turned_in</mat-icon>
+            <span>Track Candidates</span>
+          </div>
+        </div>
+
+        <a mat-flat-button color="primary" routerLink="/company/register" class="empty-cta-btn">
+          <mat-icon>add_business</mat-icon>
+          <span>Register Your First Company</span>
+        </a>
+      </div>
+    } @else {
+      <!-- Company Cards Grid -->
+      <div class="companies-grid">
+        @for (company of companies(); track company.id) {
+          <mat-card class="company-card">
+            <mat-card-header>
+              <div mat-card-avatar class="company-avatar">
+                {{ getCompanyInitial(company.name) }}
+              </div>
+              <mat-card-title class="company-name" [title]="company.name">
+                {{ company.name }}
+              </mat-card-title>
+              <mat-card-subtitle class="company-founding">
+                <mat-icon class="founding-icon">calendar_today</mat-icon>
+                <span>Founded {{ company.foundingDate }}</span>
+              </mat-card-subtitle>
+
+              <button
+                mat-icon-button
+                [matMenuTriggerFor]="cardMenu"
+                aria-label="Company options"
+                class="card-options-btn"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #cardMenu="matMenu" xPosition="before">
+                <a mat-menu-item [routerLink]="['/companies', company.id, 'team']">
+                  <mat-icon>people</mat-icon>
+                  <span>Team Members</span>
+                </a>
+                <a mat-menu-item [routerLink]="['/companies', company.id, 'email-templates']">
+                  <mat-icon>email</mat-icon>
+                  <span>Email Templates</span>
+                </a>
+                <a mat-menu-item [routerLink]="['/companies', company.id, 'settings']">
+                  <mat-icon>settings</mat-icon>
+                  <span>Company Settings</span>
+                </a>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="deleteCompany(company)" class="delete-menu-item">
+                  <mat-icon color="warn">delete</mat-icon>
+                  <span>Delete Company</span>
+                </button>
+              </mat-menu>
+            </mat-card-header>
+
+            <mat-card-content class="card-body">
+              @if (company.websiteUrl | externalUrl; as websiteHref) {
+                <a
+                  [href]="websiteHref"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="website-link"
+                >
+                  <mat-icon class="link-icon">language</mat-icon>
+                  <span class="url-text">{{ company.websiteUrl }}</span>
+                  <mat-icon class="external-icon">open_in_new</mat-icon>
+                </a>
+              }
+
+              <p class="company-desc">
+                {{ company.description }}
+              </p>
+            </mat-card-content>
+
+            <mat-card-actions class="card-footer">
+              <a
+                mat-flat-button
+                color="primary"
+                [routerLink]="['/companies', company.id, 'jobs']"
+                class="footer-btn primary-btn"
+              >
+                <mat-icon>work</mat-icon>
+                <span>Job listings</span>
+              </a>
+              @if (companyState.jobManagerCompanyIds().has(company.id)) {
+                <a
+                  mat-stroked-button
+                  routerLink="/jobs/new"
+                  [queryParams]="{ companyId: company.id }"
+                  class="footer-btn secondary-btn"
+                >
+                  <mat-icon>add</mat-icon>
+                  <span>Post Job</span>
+                </a>
+              }
+            </mat-card-actions>
+          </mat-card>
+        }
+      </div>
+    }
+  </div>
+</div>

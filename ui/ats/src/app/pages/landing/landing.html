@@ -1,0 +1,121 @@
+<!-- Landing page: hero, both sides (with the circular reveal), the product window, close and footer. -->
+<div class="landing">
+  <!-- 1. Hero: one screen under the app header -->
+  <section class="hero" data-enter aria-labelledby="hero-h">
+    <div class="wrap hero__grid">
+      <div class="hero__text">
+        <h1 id="hero-h">Job board with AI CV screening</h1>
+        <p class="hero__lead">
+          Candidates apply with a PDF CV in about a minute. Hiring teams get every application
+          scored from 0 to 100 and move people from interview to offer.
+        </p>
+      </div>
+
+      <app-hero-collage class="collage-slot" />
+
+      <div class="hero__cta">
+        <a matButton="filled" routerLink="/jobs" class="btn-xl">Find a job</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Both sides on the dark band, revealed through a circle as it scrolls in -->
+  <section #sides class="section section--band" id="sides" aria-labelledby="sides-h">
+    <div class="reveal" aria-hidden="true">
+      <div class="reveal__cover"></div>
+      <div class="reveal__ring"></div>
+    </div>
+    <div class="wrap">
+      <h2 id="sides-h">For job seekers and hiring teams</h2>
+      <p class="section__lead">
+        One sign-in for both: apply to jobs with your CV, or run your company's hiring with your
+        team.
+      </p>
+      <div class="sides">
+        <div class="side">
+          <mat-icon class="side__icon" aria-hidden="true">person_search</mat-icon>
+          <h3>Apply and follow every stage</h3>
+          <ul>
+            <li>Keep one CV on your profile and reuse it for every job</li>
+            <li>See each application move from review to offer</li>
+          </ul>
+          <div class="side__actions">
+            @if (signedIn) {
+              <a matButton="filled" routerLink="/my-applications">See your applications</a>
+            } @else {
+              <button matButton="filled" type="button" (click)="signUp('jobs')">
+                Sign up to apply
+              </button>
+            }
+          </div>
+        </div>
+        <div class="side">
+          <mat-icon class="side__icon" aria-hidden="true">groups</mat-icon>
+          <h3>Hire with scored applications</h3>
+          <ul>
+            <li>Every CV gets a score and a short AI review</li>
+            <li>Offer and decline emails go out from your templates</li>
+          </ul>
+          <div class="side__actions">
+            @switch (companyMode()) {
+              @case ('post-jobs') {
+                <a matButton="filled" routerLink="/jobs/new">Add a job listing</a>
+                <a matButton class="link-btn" [routerLink]="companyState.jobListingsLink()">
+                  Your job listings
+                </a>
+              }
+              @case ('member') {
+                <a matButton="filled" routerLink="/companies">See your companies</a>
+              }
+              @case ('register') {
+                <a matButton="filled" routerLink="/company/register">Add your company</a>
+              }
+              @default {
+                <button matButton="filled" type="button" (click)="signUp('company')">
+                  Sign up your company
+                </button>
+                <button matButton type="button" class="link-btn" (click)="signIn()">
+                  Sign in to your account
+                </button>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. The product itself: the applicant table as live HTML -->
+  <section class="section" id="product" aria-labelledby="product-h">
+    <div class="wrap">
+      <h2 id="product-h">The applicant table for every job</h2>
+      <p class="section__lead">
+        Sort by AI score, filter by stage, and open a candidate to read the review, download the CV
+        and add interview feedback.
+      </p>
+      <app-product-window />
+    </div>
+  </section>
+
+  <!-- 4. Close and footer as one screen (close-word, footer-dark) -->
+  <footer class="closing" aria-labelledby="close-h">
+    <div class="wrap closing__wrap">
+      <div class="closing__cta">
+        <div class="closing__head">
+          <h2 id="close-h">Open jobs from every company on ATS</h2>
+          <a matButton="filled" routerLink="/jobs" class="btn-xl">Find a job</a>
+        </div>
+        <p class="closing__word" aria-hidden="true">Applicant Tracking</p>
+      </div>
+      <div class="closing__footer">
+        <nav class="footer-links" aria-label="Footer">
+          <a routerLink="/jobs">Jobs</a>
+          <a routerLink="/my-applications">My applications</a>
+          <a routerLink="/companies">Companies</a>
+          <a routerLink="/profile">Profile</a>
+        </nav>
+        <p class="footer-legal">ATS · Applicant Tracking</p>
+      </div>
+    </div>
+  </footer>
+</div>

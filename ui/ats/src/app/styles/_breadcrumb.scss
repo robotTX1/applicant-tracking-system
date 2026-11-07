@@ -1,0 +1,50 @@
+// The company pages' breadcrumb: My Companies › company › page. One line at any width: the first
+// link stays whole, the company name and the current page shrink with an ellipsis (their full
+// text is in the title tooltip).
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  a,
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:first-child {
+      flex-shrink: 0;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: var(--mat-sys-primary);
+      text-decoration: underline;
+    }
+  }
+
+  mat-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  // The current page stays whole when short ("Team"); a long one (a job title) takes 40% at most
+  span {
+    flex-shrink: 0;
+    max-width: 40%;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+}

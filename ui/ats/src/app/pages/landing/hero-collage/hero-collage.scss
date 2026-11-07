@@ -1,0 +1,204 @@
+@use '../landing-ui';
+
+:host {
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --r-lg: 24px;
+
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.collage {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  border-radius: var(--r-lg);
+  background: var(--mat-sys-surface-container-low);
+  overflow: hidden;
+  // Pieces size their text from the collage's height, so a set keeps its layout at any size
+  container-type: size;
+}
+
+.collage__set {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  // The old set leaves before the new one arrives, so two sets never show through each other
+  transition:
+    opacity 0.3s ease-in,
+    visibility 0s linear 0.3s;
+
+  &.is-on {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s var(--ease) 0.3s;
+  }
+}
+
+.collage__pause {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--app-card-border);
+  border-radius: 50%;
+  background: var(--app-card-bg);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}
+
+// Collage pieces: small live UI cards from the app itself
+
+.piece {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  padding: 1.15em;
+  border-radius: 1.15em;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow-hover);
+  font-size: clamp(0.6rem, 2.2cqh, 0.875rem);
+  line-height: 1.45;
+  color: var(--mat-sys-on-surface);
+
+  p {
+    margin: 0;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  small {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.pc-logo {
+  display: grid;
+  place-items: center;
+  width: 2.6em;
+  height: 2.6em;
+  border-radius: 0.7em;
+  font-weight: 700;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.pc-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--mat-sys-surface-container);
+
+  small {
+    margin-left: auto;
+  }
+}
+
+.pc-dots {
+  display: flex;
+  gap: 6px;
+
+  i {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--mat-sys-surface-container-highest);
+
+    &.on {
+      background: var(--mat-sys-primary);
+    }
+  }
+}
+
+.pc-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--app-card-border);
+}
+
+.pc-cv {
+  flex-direction: row;
+  align-items: center;
+}
+
+.pc-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collage__set,
+  .collage__pause {
+    transition: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .collage {
+    min-height: 280px;
+  }
+
+  // The phone holds set one
+  .collage__set {
+    transition: none;
+  }
+
+  .collage__pause {
+    display: none;
+  }
+
+  // The phone lays its one set out by hand: a fixed, readable size instead of the height-based one
+  .piece {
+    padding: 0.9em;
+    font-size: 0.75rem;
+  }
+
+  // Set one only (the phone holds it): the job and the CV, stacked so neither covers the other.
+  // !important beats the desktop positions written on the pieces.
+  .pc-job {
+    left: 4% !important;
+    top: 5% !important;
+    width: 80% !important;
+  }
+
+  .pc-apply {
+    left: 16% !important;
+    top: 50% !important;
+    width: 80% !important;
+  }
+
+  .pc-progress,
+  .pc-apply .pc-label:nth-of-type(2),
+  .pc-apply p {
+    display: none;
+  }
+}

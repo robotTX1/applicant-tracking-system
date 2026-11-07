@@ -1,0 +1,170 @@
+<!-- Mobile navigation drawer (Material 3): brand and close, then grouped destinations as pills. -->
+<nav class="drawer" aria-label="Main">
+  <div class="drawer-header">
+    <a [routerLink]="homeLink" (click)="onLinkClick()" class="drawer-brand" aria-label="ATS Home">
+      <app-logo />
+    </a>
+    <button matIconButton type="button" aria-label="Close menu" (click)="onLinkClick()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <mat-nav-list class="drawer-list" aria-label="Jobs">
+      <a
+        mat-list-item
+        routerLink="/jobs"
+        routerLinkActive
+        #jobsLink="routerLinkActive"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+        [activated]="jobsLink.isActive"
+        (click)="onLinkClick()"
+      >
+        <mat-icon matListItemIcon>work_outline</mat-icon>
+        <span matListItemTitle>Find jobs</span>
+      </a>
+
+      @if (keycloak.authenticated) {
+        <a
+          mat-list-item
+          routerLink="/my-applications"
+          routerLinkActive
+          #applicationsLink="routerLinkActive"
+          ariaCurrentWhenActive="page"
+          [activated]="applicationsLink.isActive"
+          (click)="onLinkClick()"
+        >
+          <mat-icon matListItemIcon>assignment</mat-icon>
+          <span matListItemTitle>My applications</span>
+        </a>
+
+        <a
+          mat-list-item
+          routerLink="/profile"
+          routerLinkActive
+          #profileLink="routerLinkActive"
+          ariaCurrentWhenActive="page"
+          [activated]="profileLink.isActive"
+          (click)="onLinkClick()"
+        >
+          <mat-icon matListItemIcon>badge</mat-icon>
+          <span matListItemTitle>Profile and CV</span>
+        </a>
+      }
+    </mat-nav-list>
+
+    @if (keycloak.authenticated && hasCompany()) {
+      <mat-divider class="drawer-divider" />
+      <h2 class="drawer-section" id="drawer-hiring">Hiring</h2>
+      <mat-nav-list class="drawer-list" aria-labelledby="drawer-hiring">
+        <a
+          mat-list-item
+          routerLink="/companies"
+          routerLinkActive
+          #companiesLink="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          [activated]="companiesLink.isActive"
+          (click)="onLinkClick()"
+        >
+          <mat-icon matListItemIcon>domain</mat-icon>
+          <span matListItemTitle>My companies</span>
+        </a>
+
+        @if (companyState.canPostJobs()) {
+          <a
+            mat-list-item
+            routerLink="/jobs/new"
+            routerLinkActive
+            #newJobLink="routerLinkActive"
+            ariaCurrentWhenActive="page"
+            [activated]="newJobLink.isActive"
+            (click)="onLinkClick()"
+          >
+            <mat-icon matListItemIcon>add_circle_outline</mat-icon>
+            <span matListItemTitle>Post a job</span>
+          </a>
+        }
+
+        <a
+          mat-list-item
+          [routerLink]="companyState.jobListingsLink()"
+          routerLinkActive
+          #listingsLink="routerLinkActive"
+          ariaCurrentWhenActive="page"
+          [activated]="listingsLink.isActive && companyLinksLeadToCompany()"
+          (click)="onLinkClick()"
+        >
+          <mat-icon matListItemIcon>work</mat-icon>
+          <span matListItemTitle>Job listings</span>
+        </a>
+
+        <a
+          mat-list-item
+          [routerLink]="companyState.teamLink()"
+          routerLinkActive
+          #teamLink="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          [activated]="teamLink.isActive && companyLinksLeadToCompany()"
+          (click)="onLinkClick()"
+        >
+          <mat-icon matListItemIcon>people_outline</mat-icon>
+          <span matListItemTitle>Team</span>
+        </a>
+
+        <a
+          mat-list-item
+          [routerLink]="companyState.emailTemplatesLink()"
+          routerLinkActive
+          #templatesLink="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          [activated]="templatesLink.isActive && companyLinksLeadToCompany()"
+          (click)="onLinkClick()"
+        >
+          <mat-icon matListItemIcon>mail_outline</mat-icon>
+          <span matListItemTitle>Email templates</span>
+        </a>
+
+        <a
+          mat-list-item
+          [routerLink]="companyState.settingsLink()"
+          routerLinkActive
+          #settingsLink="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page"
+          [activated]="settingsLink.isActive && companyLinksLeadToCompany()"
+          (click)="onLinkClick()"
+        >
+          <mat-icon matListItemIcon>settings</mat-icon>
+          <span matListItemTitle>Company settings</span>
+        </a>
+
+        @if (canCreateCompany()) {
+          <button mat-list-item type="button" (click)="onRegisterCompany()">
+            <mat-icon matListItemIcon>add_business</mat-icon>
+            <span matListItemTitle>Add a company</span>
+          </button>
+        }
+      </mat-nav-list>
+    } @else if (canCreateCompany() || !keycloak.authenticated) {
+      <mat-divider class="drawer-divider" />
+      <h2 class="drawer-section" id="drawer-hiring">Hiring</h2>
+      <mat-nav-list class="drawer-list" aria-labelledby="drawer-hiring">
+        <button mat-list-item type="button" (click)="onRegisterCompany()">
+          <mat-icon matListItemIcon>add_business</mat-icon>
+          <span matListItemTitle>Add your company</span>
+        </button>
+      </mat-nav-list>
+    }
+  </div>
+
+  @if (!keycloak.authenticated) {
+    <div class="drawer-footer">
+      <button matButton="filled" type="button" (click)="onRegister()">Sign up</button>
+      <button matButton="outlined" type="button" (click)="onLogin()">Sign in</button>
+    </div>
+  }
+</nav>

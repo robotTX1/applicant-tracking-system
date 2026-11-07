@@ -1,0 +1,187 @@
+<div class="templates-container">
+  @if (!company()) {
+    <div class="state-card" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>domain_disabled</mat-icon>
+      </div>
+      <h1>Company not found</h1>
+      <p class="state-description">
+        This company doesn't exist, or you're not a member of its team.
+      </p>
+      <a mat-flat-button routerLink="/companies">
+        <mat-icon>domain</mat-icon>
+        <span>My companies</span>
+      </a>
+    </div>
+  } @else {
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/companies">My Companies</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <a [routerLink]="['/companies', companyId(), 'jobs']" [title]="company()!.name">{{
+        company()!.name
+      }}</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <span aria-current="page">Email templates</span>
+    </nav>
+
+    <header class="page-header">
+      <h1 class="page-title">Email templates</h1>
+      <p class="page-subtitle">
+        Candidates get these emails automatically when you make an offer or decline them. Each job
+        picks one of each.
+      </p>
+    </header>
+
+    @if (noAccess()) {
+      <div class="state-card" role="alert">
+        <div class="state-icon-circle">
+          <mat-icon>lock</mat-icon>
+        </div>
+        <h2>Only owners, co-owners and HR managers manage email templates</h2>
+        <p class="state-description">Ask one of them if a template needs changing.</p>
+        <a mat-stroked-button [routerLink]="['/companies', companyId(), 'jobs']">
+          <mat-icon>arrow_back</mat-icon>
+          <span>Back to job listings</span>
+        </a>
+      </div>
+    } @else if (templates.error()) {
+      <div class="state-card" role="alert">
+        <div class="state-icon-circle error">
+          <mat-icon>cloud_off</mat-icon>
+        </div>
+        <h2>Couldn't load the templates</h2>
+        <p class="state-description">Something went wrong while loading the email templates.</p>
+        <button mat-flat-button type="button" (click)="templates.reload()">
+          <mat-icon>refresh</mat-icon>
+          <span>Try again</span>
+        </button>
+      </div>
+    } @else if (!templates.hasValue()) {
+      <div class="template-grid" aria-busy="true" aria-label="Loading templates">
+        @for (i of [0, 1]; track i) {
+          <div class="template-card skeleton-card" aria-hidden="true">
+            <span class="skeleton line w-60"></span>
+            <span class="skeleton line w-90"></span>
+            <span class="skeleton line w-40"></span>
+          </div>
+        }
+      </div>
+    } @else {
+      @for (section of sections; track section.type) {
+        @let list = byType().get(section.type) ?? [];
+        <section class="template-section" [attr.aria-labelledby]="'section-' + section.type">
+          <header class="section-header">
+            <div class="section-titles">
+              <h2 [id]="'section-' + section.type">
+                <mat-icon aria-hidden="true" [class]="'icon-' + section.type.toLowerCase()">{{
+                  section.icon
+                }}</mat-icon>
+                {{ section.title }}
+                <span class="count">{{ list.length }} / {{ maxPerType }}</span>
+              </h2>
+              <p>{{ section.description }}</p>
+            </div>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="create(section.type)"
+              [disabled]="!canAdd(section.type)"
+              [matTooltip]="
+                canAdd(section.type)
+                  ? ''
+                  : 'You can have up to ' + maxPerType + ' templates of each kind'
+              "
+            >
+              <mat-icon>add</mat-icon>
+              <span>New template</span>
+            </button>
+          </header>
+
+          <div class="template-grid">
+            @for (template of list; track template.id) {
+              @let jobs = usedBy(template);
+              <article class="template-card">
+                <div class="card-top">
+                  <h3 class="template-subject">{{ preview(template.subject) }}</h3>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [matMenuTriggerFor]="menu"
+                    [disabled]="deletingId() === template.id"
+                    [attr.aria-label]="'Actions for ' + template.subject"
+                  >
+                    @if (deletingId() === template.id) {
+                      <mat-spinner diameter="20" />
+                    } @else {
+                      <mat-icon>more_vert</mat-icon>
+                    }
+                  </button>
+                  <mat-menu #menu="matMenu" xPosition="before">
+                    <button mat-menu-item type="button" (click)="edit(template)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      mat-menu-item
+                      type="button"
+                      (click)="duplicate(template)"
+                      [disabled]="!canAdd(template.type)"
+                    >
+                      <mat-icon>content_copy</mat-icon>
+                      <span>Duplicate</span>
+                    </button>
+                    <mat-divider />
+                    @if (jobs.length === 0) {
+                      <button
+                        mat-menu-item
+                        type="button"
+                        class="delete-item"
+                        (click)="remove(template)"
+                      >
+                        <mat-icon>delete</mat-icon>
+                        <span>Delete</span>
+                      </button>
+                    } @else {
+                      <button mat-menu-item type="button" disabled>
+                        <mat-icon>delete</mat-icon>
+                        <span class="menu-two-line">
+                          <span>Delete</span>
+                          <span class="menu-hint"
+                            >Used by jobs: pick another template there first</span
+                          >
+                        </span>
+                      </button>
+                    }
+                  </mat-menu>
+                </div>
+                <p class="template-body">{{ preview(template.body) }}</p>
+                <div class="card-bottom">
+                  @if (jobs.length > 0) {
+                    <span class="usage" [matTooltip]="usedByTooltip(template)">
+                      <mat-icon aria-hidden="true">work</mat-icon>
+                      {{ usedByLabel(template) }}
+                    </span>
+                  } @else if (usage.hasValue() && usage.value() !== null) {
+                    <span class="usage unused">Not used by any job</span>
+                  }
+                  <button mat-button type="button" (click)="edit(template)">Edit</button>
+                </div>
+              </article>
+            } @empty {
+              <p class="section-empty">
+                No {{ section.title | lowercase }} yet. Jobs need one to be posted.
+              </p>
+            }
+          </div>
+        </section>
+      }
+      <p class="footnote">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <span
+          >Previews use your name as the candidate and sample job details. Edits apply to every job
+          using the template, for emails sent from then on.</span
+        >
+      </p>
+    }
+  }
+</div>

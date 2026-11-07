@@ -1,0 +1,56 @@
+<div class="editor-toolbar">
+  <div class="format-actions" role="toolbar" aria-label="Text formatting">
+    @for (group of actions; track $index) {
+      @if (!$first) {
+        <span class="toolbar-divider" aria-hidden="true"></span>
+      }
+      @for (action of group; track action.id) {
+        <button
+          mat-icon-button
+          type="button"
+          class="format-button"
+          [attr.data-action]="action.id"
+          [attr.aria-label]="action.label"
+          [matTooltip]="tooltip(action)"
+          [disabled]="mode() === 'preview'"
+          (mousedown)="$event.preventDefault()"
+          (click)="run(action)"
+        >
+          <mat-icon>{{ action.icon }}</mat-icon>
+        </button>
+      }
+    }
+  </div>
+
+  <mat-button-toggle-group
+    class="mode-toggle"
+    hideSingleSelectionIndicator
+    aria-label="Editor mode"
+    [value]="mode()"
+    (change)="setMode($event.value)"
+  >
+    <mat-button-toggle value="write">
+      <mat-icon>edit</mat-icon>
+      <span>Write</span>
+    </mat-button-toggle>
+    <mat-button-toggle value="preview">
+      <mat-icon>visibility</mat-icon>
+      <span>Preview</span>
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<!-- Kept in the DOM while previewing so the form control, autosize and undo history survive -->
+<div class="write-pane" [hidden]="mode() === 'preview'">
+  <ng-content />
+</div>
+
+@if (mode() === 'preview') {
+  <section class="preview-pane" aria-label="Preview">
+    @if (value().trim()) {
+      <markdown class="markdown-body" [data]="value()" />
+    } @else {
+      <p class="preview-empty">Nothing to preview yet.</p>
+    }
+  </section>
+}

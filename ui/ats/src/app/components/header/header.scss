@@ -1,0 +1,145 @@
+.header-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+  background-color: var(--app-card-bg) !important;
+  border-bottom: 1px solid var(--app-card-border);
+
+  .mobile-menu-btn {
+    margin-right: 4px;
+    margin-left: -8px; // flush with the left toolbar edge
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--mat-sys-on-surface);
+    margin-right: 16px;
+    border-radius: 8px;
+    outline: none;
+
+    &:visited,
+    &:hover,
+    &:active {
+      color: var(--mat-sys-on-surface);
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 2px var(--mat-sys-primary, #005cbb);
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+
+    .active-link {
+      background-color: var(--mat-sys-secondary-container, rgba(128, 128, 128, 0.15));
+      color: var(--mat-sys-on-secondary-container, inherit);
+      border-radius: 4px;
+    }
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+
+    .active-link {
+      background-color: var(--mat-sys-secondary-container, rgba(128, 128, 128, 0.15));
+      color: var(--mat-sys-on-secondary-container, inherit);
+      border-radius: 4px;
+    }
+
+    .post-job-btn {
+      margin: 0 4px;
+    }
+
+    .user-profile-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .user-avatar-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        transition:
+          font-size 0.2s ease,
+          width 0.2s ease,
+          height 0.2s ease;
+      }
+
+      .user-name {
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .user-dropdown-icon {
+        transition:
+          font-size 0.2s ease,
+          width 0.2s ease,
+          height 0.2s ease;
+      }
+
+      // On narrow mobile devices, hide text and make avatar icon prominently bigger
+      @media (max-width: 520px) {
+        min-width: 44px;
+        padding: 0 4px;
+        gap: 2px;
+
+        .user-name {
+          display: none;
+        }
+
+        .user-avatar-icon {
+          font-size: 32px !important;
+          width: 32px !important;
+          height: 32px !important;
+        }
+
+        .user-dropdown-icon {
+          font-size: 18px !important;
+          width: 18px !important;
+          height: 18px !important;
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+}
+
+.user-menu-header {
+  padding: 12px 16px 8px;
+  min-width: 200px;
+
+  .user-display-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .user-display-email {
+    font-size: 0.8rem;
+    color: var(--mat-sys-on-surface-variant);
+    margin-top: 2px;
+  }
+}
+
+.check-icon {
+  margin-left: auto;
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: var(--mat-sys-primary);
+}

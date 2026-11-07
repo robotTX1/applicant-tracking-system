@@ -1,0 +1,177 @@
+<div class="company-register-page">
+  <div class="register-layout-container">
+    <!-- Back to Hub Navigation Bar -->
+    <div class="breadcrumb-bar">
+      <a mat-button routerLink="/companies" class="back-link">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Back to My Companies</span>
+      </a>
+    </div>
+
+    <!-- 2-Column Responsive Layout -->
+    <div class="two-column-layout">
+      <!-- Main Content (Left Column) -->
+      <main class="main-column">
+        @if (limitReached()) {
+          <!-- Limit Reached State Card -->
+          <mat-card class="limit-card">
+            <mat-card-header>
+              <div mat-card-avatar class="header-avatar warn-avatar">
+                <mat-icon>warning</mat-icon>
+              </div>
+              <mat-card-title>Company Limit Reached</mat-card-title>
+              <mat-card-subtitle>
+                Account Resource Limit ({{ ownedCount() }}/{{ maxCompanies }})
+              </mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                You currently own {{ ownedCount() }} of the maximum {{ maxCompanies }} companies
+                allowed per account. To manage your existing companies, please head over to the My
+                Companies hub.
+              </p>
+            </mat-card-content>
+            <mat-card-actions align="end">
+              <a mat-flat-button color="primary" routerLink="/companies">Go to My Companies</a>
+            </mat-card-actions>
+          </mat-card>
+        } @else {
+          <!-- Registration Form Card -->
+          <mat-card class="register-card">
+            <mat-card-header>
+              <div mat-card-avatar class="header-avatar">
+                <mat-icon>business</mat-icon>
+              </div>
+              <mat-card-title>Register Your Company</mat-card-title>
+              <mat-card-subtitle>
+                Set up your organization to start publishing jobs and reviewing candidates.
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              @if (serverError()) {
+                <div class="error-banner" role="alert">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>{{ serverError() }}</span>
+                </div>
+              }
+
+              <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="register-form">
+                <app-company-fields [form]="form" />
+
+                <div class="form-actions">
+                  <button type="button" mat-button (click)="cancel()" [disabled]="isSubmitting()">
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    mat-flat-button
+                    color="primary"
+                    [disabled]="isSubmitting() || form.invalid"
+                    class="submit-btn"
+                  >
+                    @if (isSubmitting()) {
+                      <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                      <span>Creating Company...</span>
+                    } @else {
+                      <span class="btn-content">
+                        <mat-icon>check</mat-icon>
+                        <span>Create Company</span>
+                      </span>
+                    }
+                  </button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        }
+      </main>
+
+      <!-- Sidebar Guidance (Right Column) -->
+      <aside class="sidebar-column">
+        <!-- Resource Limit Meter Card -->
+        <mat-card class="sidebar-card capacity-card">
+          <mat-card-header>
+            <div mat-card-avatar class="sidebar-avatar">
+              <mat-icon>domain</mat-icon>
+            </div>
+            <mat-card-title>Account Capacity</mat-card-title>
+            <mat-card-subtitle
+              >{{ ownedCount() }} / {{ maxCompanies }} slots used</mat-card-subtitle
+            >
+          </mat-card-header>
+          <mat-card-content>
+            <div class="capacity-meter">
+              <div class="meter-slots">
+                @for (slot of [1, 2, 3]; track slot) {
+                  <div
+                    class="meter-slot"
+                    [class.filled]="slot <= ownedCount()"
+                    [class.active]="slot === ownedCount() + 1 && !limitReached()"
+                  ></div>
+                }
+              </div>
+              <p class="capacity-status">
+                @if (limitReached()) {
+                  <span class="status-limit">Maximum limit reached</span>
+                } @else {
+                  <span
+                    >{{ maxCompanies - ownedCount() }} company slot{{
+                      maxCompanies - ownedCount() > 1 ? 's' : ''
+                    }}
+                    remaining</span
+                  >
+                }
+              </p>
+            </div>
+            <p class="capacity-note">
+              Each user account can register and manage up to 3 independent organizations.
+            </p>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Next Steps Card -->
+        <mat-card class="sidebar-card">
+          <mat-card-header>
+            <div mat-card-avatar class="sidebar-avatar info-avatar">
+              <mat-icon>rocket_launch</mat-icon>
+            </div>
+            <mat-card-title>What Happens Next?</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <ol class="next-steps-list">
+              <li>
+                <div class="step-badge">1</div>
+                <div class="step-content">
+                  <strong>Company Profile Ready</strong>
+                  <p>Your organization hub and branding are configured.</p>
+                </div>
+              </li>
+              <li>
+                <div class="step-badge">2</div>
+                <div class="step-content">
+                  <strong>Post Your First Job</strong>
+                  <p>Publish job positions visible to candidates immediately.</p>
+                </div>
+              </li>
+              <li>
+                <div class="step-badge">3</div>
+                <div class="step-content">
+                  <strong>Invite Hiring Team</strong>
+                  <p>Collaborate with recruiters and hiring managers seamlessly.</p>
+                </div>
+              </li>
+              <li>
+                <div class="step-badge">4</div>
+                <div class="step-content">
+                  <strong>Review Candidates</strong>
+                  <p>Track applications across interview stages.</p>
+                </div>
+              </li>
+            </ol>
+          </mat-card-content>
+        </mat-card>
+      </aside>
+    </div>
+  </div>
+</div>
