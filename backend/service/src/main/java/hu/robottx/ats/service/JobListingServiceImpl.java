@@ -1,10 +1,13 @@
 package hu.robottx.ats.service;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,9 +29,11 @@ import hu.robottx.ats.model.JobListingStatus;
 import hu.robottx.ats.model.JobListingUpdateRequest;
 import hu.robottx.ats.model.PagedJobListingResponse;
 import hu.robottx.ats.model.SearchAndPageRequest;
+import hu.robottx.ats.repository.ApplicationRepository;
 import hu.robottx.ats.repository.CompanyRepository;
 import hu.robottx.ats.repository.EmailTemplateRepository;
 import hu.robottx.ats.repository.JobListingRepository;
+import hu.robottx.ats.repository.projection.JobListingApplicationCount;
 import hu.robottx.ats.security.service.CompanySecurityService;
 import hu.robottx.ats.security.service.SecurityService;
 import hu.robottx.ats.util.JobListingQueryParamsUtil;
@@ -46,6 +51,7 @@ public class JobListingServiceImpl implements JobListingService {
     private final CompanyRepository companyRepository;
     private final EmailTemplateRepository emailTemplateRepository;
     private final JobListingRepository jobListingRepository;
+    private final ApplicationRepository applicationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -58,14 +64,16 @@ public class JobListingServiceImpl implements JobListingService {
         PageRequest pageRequest = PageRequest.of(request.getPageNumber(), request.getPageSize());
         Specification<JobListing> spec = JobListingQueryParamsUtil.createSearchSpecification(
                 authorizedCompanyIds, request);
+        Page<JobListing> jobListings;
         try {
-            Page<JobListing> jobListings = jobListingRepository.findAll(spec, pageRequest);
-            return JobListingMapper.INSTANCE.toModel(jobListings, activeCompanyIds);
+            jobListings = jobListingRepository.findAll(spec, pageRequest);
         } catch (RuntimeException ex) {
             log.debug("Invalid query or sort parameters: query='{}', sort='{}'",
                     request.getQuery(), request.getSort());
             throw new IllegalArgumentException("Invalid query or sort parameters", ex);
         }
+        Map<Long, Long> applicationCounts = countApplications(jobListings, activeCompanyIds);
+        return JobListingMapper.INSTANCE.toModel(jobListings, activeCompanyIds, applicationCounts);
     }
 
     @Override
@@ -81,9 +89,14 @@ public class JobListingServiceImpl implements JobListingService {
             throw new ResourceNotFoundException(JOB_LISTING_NOT_FOUND_MESSAGE.formatted(jobListingId));
         }
         boolean isEmployee = companySecurityService.hasPermission(companyId, CompanyPermission.VIEW_EMPLOYEES);
-        return isEmployee
-                ? JobListingMapper.INSTANCE.toModel(jobListing)
-                : JobListingMapper.INSTANCE.toPublicModel(jobListing);
+        JobListingResponse response;
+        if (isEmployee) {
+            long numberOfApplicants = applicationRepository.countByJobListingJobListingId(jobListingId);
+            response = JobListingMapper.INSTANCE.toModel(jobListing, numberOfApplicants);
+        } else {
+            response = JobListingMapper.INSTANCE.toPublicModel(jobListing);
+        }
+        return response;
     }
 
     @Override
@@ -120,7 +133,7 @@ public class JobListingServiceImpl implements JobListingService {
         jobListing = jobListingRepository.save(jobListing);
         log.debug("Saved job listing with id {} for company {}",
                 jobListing.getJobListingId(), companyId);
-        return JobListingMapper.INSTANCE.toModel(jobListing);
+        return JobListingMapper.INSTANCE.toModel(jobListing, 0L);
     }
 
     @Override
@@ -145,7 +158,8 @@ public class JobListingServiceImpl implements JobListingService {
         jobListing.setStatus(JobListingMapper.INSTANCE.toDomain(request.getStatus()));
         jobListing = jobListingRepository.saveAndFlush(jobListing);
         log.debug("Updated job listing {} by user {}", jobListingId, userId);
-        return JobListingMapper.INSTANCE.toModel(jobListing);
+        long numberOfApplicants = applicationRepository.countByJobListingJobListingId(jobListingId);
+        return JobListingMapper.INSTANCE.toModel(jobListing, numberOfApplicants);
     }
 
     @Override
@@ -156,6 +170,23 @@ public class JobListingServiceImpl implements JobListingService {
         JobListing jobListing = getJobListingForManager(jobListingId, userId);
         jobListingRepository.delete(jobListing);
         log.debug("Deleted job listing {} by user {}", jobListingId, userId);
+    }
+
+    private Map<Long, Long> countApplications(Page<JobListing> jobListings, Set<Long> employeeCompanyIds) {
+        if (CollectionUtils.isEmpty(employeeCompanyIds)) {
+            return Map.of();
+        }
+        Set<Long> ownJobListingIds = jobListings.getContent().stream()
+                .filter(jl -> employeeCompanyIds.contains(jl.getCompany().getCompanyId()))
+                .map(JobListing::getJobListingId)
+                .collect(Collectors.toSet());
+        if (ownJobListingIds.isEmpty()) {
+            return Map.of();
+        }
+        return applicationRepository.countByJobListingIds(ownJobListingIds).stream()
+                .collect(Collectors.toMap(
+                        JobListingApplicationCount::getJobListingId,
+                        JobListingApplicationCount::getApplicationCount));
     }
 
     private EmailTemplate resolveEmailTemplate(Long companyId, Long emailTemplateId, EmailTemplateType expectedType) {

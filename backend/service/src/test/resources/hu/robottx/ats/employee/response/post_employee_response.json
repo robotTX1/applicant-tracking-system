@@ -2,6 +2,9 @@
   "id": 6,
   "companyId": 1,
   "userId": "other-user",
+  "firstName": "Other",
+  "lastName": "User",
+  "email": "other.user@example.com",
   "role": "HR_MANAGER",
   "status": "ACTIVE",
   "assignedDate": "2025-08-16T13:30:10Z"

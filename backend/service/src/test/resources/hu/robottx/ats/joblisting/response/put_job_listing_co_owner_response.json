@@ -1,6 +1,13 @@
 {
   "id": 5,
   "companyId": 4,
+  "company": {
+    "id": 4,
+    "name": "CloudNine",
+    "foundingDate": "2022-01-15",
+    "websiteUrl": "https://cloudnine.example.com",
+    "description": "Modern cloud infrastructure services."
+  },
   "location": "Budapest, Hungary",
   "title": "DevOps Engineer Updated",
   "description": "Updated by co-owner of CloudNine.",
@@ -8,6 +15,7 @@
   "aiReviewMinScore": 75,
   "offerEmailTemplateId": 6,
   "declineEmailTemplateId": 8,
+  "applicationCount": 0,
   "status": "PUBLISHED",
   "createdAt": "2026-01-05T10:00:00Z",
   "updatedAt": "2025-08-16T13:30:10Z"

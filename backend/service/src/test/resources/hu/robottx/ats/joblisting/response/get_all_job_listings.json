@@ -3,6 +3,13 @@
     {
       "id": 1,
       "companyId": 1,
+      "company": {
+        "id": 1,
+        "name": "TechCorp",
+        "foundingDate": "2015-03-10",
+        "websiteUrl": "https://techcorp.example.com",
+        "description": "Enterprise software solutions provider."
+      },
       "location": "Budapest",
       "title": "Senior Java Developer",
       "description": "We are looking for a Senior Java Developer.",
@@ -10,6 +17,7 @@
       "aiReviewMinScore": 70,
       "offerEmailTemplateId": 1,
       "declineEmailTemplateId": 2,
+      "applicationCount": 0,
       "status": "PUBLISHED",
       "createdAt": "2026-01-01T10:00:00Z",
       "updatedAt": "2026-01-01T10:00:00Z"
@@ -17,6 +25,13 @@
     {
       "id": 2,
       "companyId": 1,
+      "company": {
+        "id": 1,
+        "name": "TechCorp",
+        "foundingDate": "2015-03-10",
+        "websiteUrl": "https://techcorp.example.com",
+        "description": "Enterprise software solutions provider."
+      },
       "location": "Debrecen",
       "title": "Junior Frontend Developer",
       "description": "We are looking for a Junior Frontend Developer.",
@@ -24,6 +39,7 @@
       "aiReviewMinScore": 50,
       "offerEmailTemplateId": 1,
       "declineEmailTemplateId": 2,
+      "applicationCount": 0,
       "status": "DRAFT",
       "createdAt": "2026-01-02T10:00:00Z",
       "updatedAt": "2026-01-02T10:00:00Z"
@@ -31,6 +47,13 @@
     {
       "id": 3,
       "companyId": 2,
+      "company": {
+        "id": 2,
+        "name": "InnovateLabs",
+        "foundingDate": "2020-07-22",
+        "websiteUrl": "https://innovatelabs.example.com",
+        "description": "AI and cloud research company."
+      },
       "location": "Budapest",
       "title": "Cloud Architect",
       "description": "We are looking for a Cloud Architect.",
@@ -38,6 +61,7 @@
       "aiReviewMinScore": 80,
       "offerEmailTemplateId": 3,
       "declineEmailTemplateId": 7,
+      "applicationCount": 0,
       "status": "PUBLISHED",
       "createdAt": "2026-01-03T10:00:00Z",
       "updatedAt": "2026-01-03T10:00:00Z"
@@ -45,6 +69,13 @@
     {
       "id": 4,
       "companyId": 3,
+      "company": {
+        "id": 3,
+        "name": "DataFlow Systems",
+        "foundingDate": "2018-11-05",
+        "websiteUrl": "https://dataflow.example.com",
+        "description": "Big data analytics and streaming platform."
+      },
       "location": "Szeged",
       "title": "Data Engineer",
       "description": "We are looking for a Data Engineer.",
@@ -52,6 +83,7 @@
       "aiReviewMinScore": 60,
       "offerEmailTemplateId": 4,
       "declineEmailTemplateId": 5,
+      "applicationCount": 0,
       "status": "CLOSED",
       "createdAt": "2026-01-04T10:00:00Z",
       "updatedAt": "2026-01-04T10:00:00Z"
@@ -59,6 +91,13 @@
     {
       "id": 5,
       "companyId": 4,
+      "company": {
+        "id": 4,
+        "name": "CloudNine",
+        "foundingDate": "2022-01-15",
+        "websiteUrl": "https://cloudnine.example.com",
+        "description": "Modern cloud infrastructure services."
+      },
       "location": "Budapest",
       "title": "DevOps Engineer",
       "description": "We are looking for a DevOps Engineer.",

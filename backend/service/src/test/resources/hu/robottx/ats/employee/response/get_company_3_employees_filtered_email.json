@@ -4,6 +4,9 @@
       "id": 4,
       "companyId": 3,
       "userId": "other-user",
+      "firstName": "Other",
+      "lastName": "User",
+      "email": "other.user@example.com",
       "role": "OWNER",
       "status": "ACTIVE",
       "assignedDate": "2026-01-03T10:00:00Z"

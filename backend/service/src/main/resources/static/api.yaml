@@ -2252,6 +2252,9 @@ components:
         - id
         - companyId
         - userId
+        - firstName
+        - lastName
+        - email
         - role
         - status
         - assignedDate
@@ -2275,6 +2278,25 @@ components:
           title: Unique identifier of the user
           description: Unique identifier of the user
           example: "test-user"
+          readOnly: true
+        firstName:
+          type: string
+          title: First name
+          description: First name of the employee
+          example: "John"
+          readOnly: true
+        lastName:
+          type: string
+          title: Last name
+          description: Last name of the employee
+          example: "Doe"
+          readOnly: true
+        email:
+          type: string
+          format: email
+          title: Email
+          description: Email address of the employee
+          example: "john.doe@example.com"
           readOnly: true
         role:
           $ref: '#/components/schemas/CompanyRole'
@@ -2332,6 +2354,7 @@ components:
       required:
         - id
         - companyId
+        - company
         - location
         - title
         - description
@@ -2353,6 +2376,8 @@ components:
           description: Unique identifier of the company
           example: 1
           readOnly: true
+        company:
+          $ref: '#/components/schemas/CompanyResponse'
         location:
           type: string
           title: Location
@@ -2393,6 +2418,14 @@ components:
           title: Decline email template ID
           description: Unique identifier of the decline email template
           example: 2
+          x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)"
+        applicationCount:
+          type: integer
+          format: int64
+          title: Application count
+          description: Number of applications to the job listing. Only returned to employees of the company.
+          example: 12
+          readOnly: true
           x-field-extra-annotation: "@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)"
         status:
           $ref: '#/components/schemas/JobListingStatus'
@@ -2759,6 +2792,9 @@ components:
         - id
         - jobListingId
         - userId
+        - applicantFirstName
+        - applicantLastName
+        - applicantEmail
         - cvDocumentId
         - status
         - createdAt
@@ -2783,6 +2819,25 @@ components:
           title: Unique identifier of the user
           description: Unique identifier of the applicant user
           example: "test-user"
+          readOnly: true
+        applicantFirstName:
+          type: string
+          title: Applicant first name
+          description: First name of the applicant
+          example: "Jane"
+          readOnly: true
+        applicantLastName:
+          type: string
+          title: Applicant last name
+          description: Last name of the applicant
+          example: "Smith"
+          readOnly: true
+        applicantEmail:
+          type: string
+          format: email
+          title: Applicant email
+          description: Email address of the applicant
+          example: "jane.smith@example.com"
           readOnly: true
         cvDocumentId:
           type: integer
