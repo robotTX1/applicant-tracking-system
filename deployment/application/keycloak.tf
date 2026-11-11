@@ -103,7 +103,7 @@ resource "kubernetes_manifest" "keycloak_certificate" {
 
 resource "helm_release" "keycloak" {
   name             = "keycloak"
-  repository       = "https://codecentric.github.io/helm-charts"
+  repository       = "oci://ghcr.io/codecentric/helm-charts"
   chart            = "keycloakx"
   version          = var.keycloak_chart_version
   namespace        = kubernetes_namespace_v1.keycloak.metadata[0].name

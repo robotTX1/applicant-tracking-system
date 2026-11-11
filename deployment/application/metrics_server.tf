@@ -2,12 +2,12 @@
 
 resource "helm_release" "metrics_server" {
   name             = "metrics-server"
-  repository       = "https://kubernetes-sigs.github.io/metrics-server/"
-  chart            = "metrics-server"
+  chart            = "https://objectstorage.${var.region}.oraclecloud.com/n/${data.oci_objectstorage_namespace.main.namespace}/b/helm-charts/o/metrics-server-${var.metrics_server_chart_version}.tgz"
   version          = var.metrics_server_chart_version
   namespace        = "kube-system"
   create_namespace = false
   cleanup_on_fail  = true
+  force_update     = true
   timeout          = 300
 
   values = [
