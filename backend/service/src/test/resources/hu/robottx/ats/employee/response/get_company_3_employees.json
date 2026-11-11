@@ -4,6 +4,9 @@
       "id": 3,
       "companyId": 3,
       "userId": "test-user",
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test.user@example.com",
       "role": "HR_MANAGER",
       "status": "ACTIVE",
       "assignedDate": "2026-01-03T10:00:00Z"
@@ -12,6 +15,9 @@
       "id": 4,
       "companyId": 3,
       "userId": "other-user",
+      "firstName": "Other",
+      "lastName": "User",
+      "email": "other.user@example.com",
       "role": "OWNER",
       "status": "ACTIVE",
       "assignedDate": "2026-01-03T10:00:00Z"

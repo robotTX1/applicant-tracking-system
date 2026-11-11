@@ -1,6 +1,13 @@
 {
   "id": 4,
   "companyId": 3,
+  "company": {
+    "id": 3,
+    "name": "DataFlow Systems",
+    "foundingDate": "2018-11-05",
+    "websiteUrl": "https://dataflow.example.com",
+    "description": "Big data analytics and streaming platform."
+  },
   "location": "Szeged",
   "title": "Data Engineer",
   "description": "We are looking for a Data Engineer.",
@@ -8,6 +15,7 @@
   "aiReviewMinScore": 60,
   "offerEmailTemplateId": 4,
   "declineEmailTemplateId": 5,
+  "applicationCount": 0,
   "status": "CLOSED",
   "createdAt": "2026-01-04T10:00:00Z",
   "updatedAt": "2026-01-04T10:00:00Z"

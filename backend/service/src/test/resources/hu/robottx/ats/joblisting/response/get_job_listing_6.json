@@ -1,6 +1,13 @@
 {
   "id": 6,
   "companyId": 4,
+  "company": {
+    "id": 4,
+    "name": "CloudNine",
+    "foundingDate": "2022-01-15",
+    "websiteUrl": "https://cloudnine.example.com",
+    "description": "Modern cloud infrastructure services."
+  },
   "location": "Remote",
   "title": "Product Manager",
   "description": "We are looking for a Product Manager.",
@@ -8,6 +15,7 @@
   "aiReviewMinScore": 65,
   "offerEmailTemplateId": 6,
   "declineEmailTemplateId": 8,
+  "applicationCount": 0,
   "status": "DRAFT",
   "createdAt": "2026-01-06T10:00:00Z",
   "updatedAt": "2026-01-06T10:00:00Z"

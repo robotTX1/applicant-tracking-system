@@ -1,6 +1,13 @@
 {
   "id": 8,
   "companyId": 1,
+  "company": {
+    "id": 1,
+    "name": "TechCorp",
+    "foundingDate": "2015-03-10",
+    "websiteUrl": "https://techcorp.example.com",
+    "description": "Enterprise software solutions provider."
+  },
   "location": "Budapest, Hungary",
   "title": "Backend Software Engineer",
   "description": "Looking for an experienced backend developer with Java skills.",
@@ -8,6 +15,7 @@
   "aiReviewMinScore": 75,
   "offerEmailTemplateId": 1,
   "declineEmailTemplateId": 2,
+  "applicationCount": 0,
   "status": "DRAFT",
   "createdAt": "2025-08-16T13:30:10Z",
   "updatedAt": "2025-08-16T13:30:10Z"

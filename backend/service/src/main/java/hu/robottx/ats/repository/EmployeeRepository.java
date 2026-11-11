@@ -4,6 +4,11 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 
+import org.jspecify.annotations.NonNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +19,12 @@ import hu.robottx.ats.domain.EmployeeStatus;
 import hu.robottx.ats.entity.Employee;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSpecificationExecutor<Employee> {
+
+    /** Fetches the user with employees: responses include the employee's name and email. */
+    @Override
+    @EntityGraph(attributePaths = "user")
+    @NonNull
+    Page<Employee> findAll(Specification<Employee> spec, @NonNull Pageable pageable);
 
     int countByUserUserIdAndRole(String userId, EmployeeRole role);
 
