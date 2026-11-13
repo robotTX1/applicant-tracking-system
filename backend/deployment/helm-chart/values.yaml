@@ -3,7 +3,7 @@ revisionHistoryLimit: 2
 
 image:
   name: applicant-tracking-system
-  version: "1.0.5"
+  version: "1.0.6"
   pullPolicy: IfNotPresent
 
 podSecurityContext:
