@@ -2,6 +2,9 @@ package hu.robottx.ats.controller;
 
 import java.util.Optional;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.jspecify.annotations.NonNull;
@@ -14,6 +17,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -99,6 +103,21 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
         return handleAllException(errorResponse);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleException(ConstraintViolationException exception) {
+        String details = exception.getConstraintViolations().stream()
+                .findFirst()
+                .map(ControllerAdvice::describeViolation)
+                .orElse(FAILED_TO_VALIDATE_REQUEST);
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .type(CLIENT_ERROR_TYPE)
+                .title(FAILED_TO_VALIDATE_REQUEST)
+                .details(details)
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
+        return handleAllException(errorResponse);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception exception) {
         log.error(exception.getMessage(), exception);
@@ -130,6 +149,19 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
                 .type(CLIENT_ERROR_TYPE)
                 .title(INVALID_REQUEST_TITLE)
                 .details("Malformed request")
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
+        return handleAllException(errorResponse);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(
+            @NonNull MissingServletRequestParameterException ex, @NonNull HttpHeaders headers,
+            @NonNull HttpStatusCode status, @NonNull WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .type(CLIENT_ERROR_TYPE)
+                .title(FAILED_TO_VALIDATE_REQUEST)
+                .details("%s is required".formatted(ex.getParameterName()))
                 .status(HttpStatus.BAD_REQUEST)
                 .build();
         return handleAllException(errorResponse);
@@ -180,6 +212,12 @@ public class ControllerAdvice extends ResponseEntityExceptionHandler {
 
     private ResponseEntity<Object> handleAllException(ErrorResponse response) {
         return new ResponseEntity<>(response, response.getStatus());
+    }
+
+    private static String describeViolation(ConstraintViolation<?> violation) {
+        String path = violation.getPropertyPath().toString();
+        String field = path.substring(path.lastIndexOf('.') + 1);
+        return "%s %s".formatted(field, violation.getMessage());
     }
 
 }

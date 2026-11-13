@@ -20,29 +20,35 @@ tags:
   - name: feedbacks
     description: Endpoints for managing job application feedbacks
 paths:
-  /users:
+  /users/lookup:
     get:
       tags:
         - users
-      operationId: getUsers
-      summary: Search and list users
-      description: Returns a paginated list of users filtered by query (matching first name, last name, full name, or email) and sorted. Accessible by authenticated users.
+      operationId: lookupUser
+      summary: Find a user by exact email
+      description: >
+        Returns the user whose email exactly matches (case-insensitive), so they can be added to a
+        company team. Only available to users who can manage the team of at least one company.
+        There is no search: partial matches and listing users are not possible.
       x-operation-extra-annotation: "@hu.robottx.ats.security.annotation.HasUserAccess"
       parameters:
         - in: query
-          name: searchAndPageRequest
+          name: email
+          required: true
           schema:
-            $ref: '#/components/schemas/SearchAndPageRequest'
-          style: form
-          explode: true
-          required: false
+            type: string
+            format: email
+            minLength: 3
+            maxLength: 255
+          description: The exact email address of the user to find
+          example: "jane.doe@example.com"
       responses:
         '200':
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PagedUserResponse'
+                $ref: '#/components/schemas/UserResponse'
         '400':
           description: Bad Request
           content:
@@ -51,6 +57,18 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         default:
           description: Unexpected error
           content:
@@ -1953,18 +1971,6 @@ components:
           description: Phone number of the authenticated user
           example: "+36301234567"
           maxLength: 15
-    PagedUserResponse:
-      type: object
-      required:
-        - content
-        - page
-      properties:
-        content:
-          type: array
-          items:
-            $ref: '#/components/schemas/UserResponse'
-        page:
-          $ref: '#/components/schemas/PageResponse'
     UserResponse:
       type: object
       required:
