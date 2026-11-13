@@ -5,12 +5,11 @@ import org.springframework.web.multipart.MultipartFile;
 import hu.robottx.ats.domain.DocumentDownload;
 import hu.robottx.ats.model.CurrentUserResponse;
 import hu.robottx.ats.model.DocumentResponse;
-import hu.robottx.ats.model.PagedUserResponse;
-import hu.robottx.ats.model.SearchAndPageRequest;
+import hu.robottx.ats.model.UserResponse;
 
 public interface UserService {
 
-    PagedUserResponse getUsers(SearchAndPageRequest request);
+    UserResponse lookupUserByEmail(String email);
 
     CurrentUserResponse getCurrentUser();
 

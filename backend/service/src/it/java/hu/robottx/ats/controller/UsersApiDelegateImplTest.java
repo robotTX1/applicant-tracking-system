@@ -30,8 +30,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import hu.robottx.ats.WiremockTest;
 import hu.robottx.ats.annotation.DirtyTest;
@@ -40,6 +42,7 @@ import hu.robottx.ats.repository.UserRepository;
 
 class UsersApiDelegateImplTest extends WiremockTest {
 
+    private static final String USER_LOOKUP_ENDPOINT = USERS_ENDPOINT + "/lookup";
     private static final String NO_ID_USER_JWT_PATH = "token/no-id-user.jwt";
     private static final String NO_FIRST_NAME_USER_JWT_PATH = "token/no-first-name-user.jwt";
     private static final String NO_LAST_NAME_USER_JWT_PATH = "token/no-last-name-user.jwt";
@@ -441,17 +444,17 @@ class UsersApiDelegateImplTest extends WiremockTest {
     }
 
     @Test
-    void testGetUsersUnauthorizedWithoutToken() {
+    void testLookupUserUnauthorizedWithoutToken() {
         restClient.get()
-                .uri(USERS_ENDPOINT)
+                .uri(lookupUri("other.user@example.com"))
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void testGetUsersForbiddenWithInvalidToken() {
+    void testLookupUserForbiddenWithInvalidToken() {
         restClient.get()
-                .uri(USERS_ENDPOINT)
+                .uri(lookupUri("other.user@example.com"))
                 .headers(headers -> headers.addAll(createAuthorizedHeaders(INVALID_USER_JWT_PATH)))
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.FORBIDDEN)
@@ -459,91 +462,62 @@ class UsersApiDelegateImplTest extends WiremockTest {
                 .value(response -> assertJson("user/response/get_current_user_forbidden.json", response));
     }
 
-    @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("getUsersSuccessTestCases")
-    void testGetUsersSuccess(String description, URI uri, String expectedResponsePath) {
+    @Test
+    @DirtyTest
+    @Sql(scripts = "classpath:hu/robottx/ats/user/sql/remove_team_management_from_test_user.sql")
+    void testLookupUserForbiddenWithoutTeamManagement() {
         restClient.get()
-                .uri(uri)
+                .uri(lookupUri("other.user@example.com"))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.FORBIDDEN)
+                .expectBody(String.class)
+                .value(response -> assertJson("user/response/get_current_user_forbidden.json", response));
+    }
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("lookupUserSuccessTestCases")
+    void testLookupUserSuccess(String description, String email) {
+        restClient.get()
+                .uri(lookupUri(email))
                 .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
                 .exchange()
                 .expectStatus().isEqualTo(HttpStatus.OK)
                 .expectBody(String.class)
-                .value(response -> assertJson(expectedResponsePath, response));
+                .value(response -> assertJson("user/response/lookup_user_other.json", response));
     }
 
-    private static Stream<Arguments> getUsersSuccessTestCases() {
+    private static Stream<Arguments> lookupUserSuccessTestCases() {
         return Stream.of(
-                Arguments.of(
-                        "Get all users without query and sort",
-                        uriWithSearchAndPageRequest(USERS_ENDPOINT, null, null, "id,asc", null, null, null),
-                        "user/response/get_users_query_user.json"
-                ),
-                Arguments.of(
-                        "Search by first name with RSQL equals",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "firstName=='Test'", null, null),
-                        "user/response/get_users_query_test.json"
-                ),
-                Arguments.of(
-                        "Search by first name with RSQL ilike",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "firstName=ilike='test'", null, null),
-                        "user/response/get_users_query_test.json"
-                ),
-                Arguments.of(
-                        "Search by last name with RSQL equals",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, "id,asc", "lastName=='User'", null, null),
-                        "user/response/get_users_query_user.json"
-                ),
-                Arguments.of(
-                        "Search by email with RSQL equals",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "email=='other.user@example.com'", null, null),
-                        "user/response/get_users_query_email.json"
-                ),
-                Arguments.of(
-                        "Search by email with RSQL ilike",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "email=ilike='other'", null, null),
-                        "user/response/get_users_query_email.json"
-                ),
-                Arguments.of(
-                        "Search by multiple fields with RSQL OR",
-                        uriWithSearchAndPageRequest(USERS_ENDPOINT, null, null, null,
-                                "firstName=='Third',email=='third.user@example.com'", null, null),
-                        "user/response/get_users_query_fullname.json"
-                ),
-                Arguments.of(
-                        "Search with no matches",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "firstName=='Nonexistent'", null, null),
-                        "user/response/get_users_empty.json"
-                ),
-                Arguments.of(
-                        "Search paginated page 0",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, 2, 0, "id,asc", "lastName=='User'", null, null),
-                        "user/response/get_users_paginated_page0.json"
-                ),
-                Arguments.of(
-                        "Search paginated page 1",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, 2, 1, "id,asc", "lastName=='User'", null, null),
-                        "user/response/get_users_paginated_page1.json"
-                ),
-                Arguments.of(
-                        "Search with sort desc",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, "id,desc", "lastName=='User'", null, null),
-                        "user/response/get_users_sort_desc.json"
-                )
+                Arguments.of("Exact email", "other.user@example.com"),
+                Arguments.of("Email in different case", "Other.User@Example.COM")
         );
     }
 
     @ParameterizedTest(name = "{index} - {0}")
-    @MethodSource("getUsersBadRequestTestCases")
-    void testGetUsersBadRequest(String description, URI uri, String expectedResponsePath) {
+    @MethodSource("lookupUserNotFoundTestCases")
+    void testLookupUserNotFound(String description, String email) {
+        restClient.get()
+                .uri(lookupUri(email))
+                .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.NOT_FOUND)
+                .expectBody(String.class)
+                .value(response -> assertJson("user/response/lookup_user_not_found.json", response));
+    }
+
+    private static Stream<Arguments> lookupUserNotFoundTestCases() {
+        return Stream.of(
+                Arguments.of("Unknown email", "nobody@example.com"),
+                Arguments.of("Partial email is not a search", "other.user@example"),
+                Arguments.of("LIKE wildcard is matched literally", "%@example.com"),
+                Arguments.of("RSQL wildcard is matched literally", "*@example.com")
+        );
+    }
+
+    @ParameterizedTest(name = "{index} - {0}")
+    @MethodSource("lookupUserBadRequestTestCases")
+    void testLookupUserBadRequest(String description, URI uri, String expectedResponsePath) {
         restClient.get()
                 .uri(uri)
                 .headers(headers -> headers.addAll(createAuthorizedHeaders(VALID_USER_JWT_PATH)))
@@ -553,45 +527,23 @@ class UsersApiDelegateImplTest extends WiremockTest {
                 .value(response -> assertJson(expectedResponsePath, response));
     }
 
-    private static Stream<Arguments> getUsersBadRequestTestCases() {
+    private static Stream<Arguments> lookupUserBadRequestTestCases() {
         return Stream.of(
-                Arguments.of(
-                        "Query with forbidden field id",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "id=='test-user'", null, null),
-                        "user/response/error_invalid_query_or_sort.json"
-                ),
-                Arguments.of(
-                        "Query with forbidden field phoneNumber",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "phoneNumber=='+36301234567'", null, null),
-                        "user/response/error_invalid_query_or_sort.json"
-                ),
-                Arguments.of(
-                        "Query with unknown property",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "unknownProperty=='test'", null, null),
-                        "user/response/error_invalid_query_or_sort.json"
-                ),
-                Arguments.of(
-                        "Query with invalid RSQL syntax",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, null, "firstName==", null, null),
-                        "user/response/error_invalid_query_or_sort.json"
-                ),
-                Arguments.of(
-                        "Sort with forbidden field phoneNumber",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, "phoneNumber,asc", null, null, null),
-                        "user/response/error_invalid_query_or_sort.json"
-                ),
-                Arguments.of(
-                        "Sort with unknown property",
-                        uriWithSearchAndPageRequest(
-                                USERS_ENDPOINT, null, null, "unknownProperty,asc", null, null, null),
-                        "user/response/error_invalid_query_or_sort.json"
-                )
+                Arguments.of("Missing email", URI.create(USER_LOOKUP_ENDPOINT),
+                        "user/response/lookup_user_missing_email.json"),
+                Arguments.of("Not an email", lookupUri("not-an-email"),
+                        "user/response/lookup_user_invalid_email.json"),
+                Arguments.of("Blank email", lookupUri("   "),
+                        "user/response/lookup_user_invalid_email.json")
         );
+    }
+
+    private static URI lookupUri(String email) {
+        return UriComponentsBuilder.fromPath(USER_LOOKUP_ENDPOINT)
+                .queryParam("email", email)
+                .encode()
+                .build()
+                .toUri();
     }
 
 }

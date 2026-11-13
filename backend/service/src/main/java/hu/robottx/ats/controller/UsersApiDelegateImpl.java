@@ -17,8 +17,7 @@ import hu.robottx.ats.api.UsersApiDelegate;
 import hu.robottx.ats.domain.DocumentDownload;
 import hu.robottx.ats.model.CurrentUserResponse;
 import hu.robottx.ats.model.DocumentResponse;
-import hu.robottx.ats.model.PagedUserResponse;
-import hu.robottx.ats.model.SearchAndPageRequest;
+import hu.robottx.ats.model.UserResponse;
 import hu.robottx.ats.service.UserService;
 
 @Component
@@ -28,8 +27,8 @@ public class UsersApiDelegateImpl implements UsersApiDelegate {
     private final UserService userService;
 
     @Override
-    public ResponseEntity<PagedUserResponse> getUsers(SearchAndPageRequest searchAndPageRequest) {
-        return ResponseEntity.ok(userService.getUsers(searchAndPageRequest));
+    public ResponseEntity<UserResponse> lookupUser(String email) {
+        return ResponseEntity.ok(userService.lookupUserByEmail(email));
     }
 
     @Override

@@ -5,13 +5,12 @@ import com.oracle.bmc.util.internal.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import hu.robottx.ats.domain.CompanyPermission;
 import hu.robottx.ats.domain.DocumentDownload;
 import hu.robottx.ats.entity.Document;
 import hu.robottx.ats.entity.User;
@@ -20,11 +19,10 @@ import hu.robottx.ats.mapper.DocumentMapper;
 import hu.robottx.ats.mapper.UserMapper;
 import hu.robottx.ats.model.CurrentUserResponse;
 import hu.robottx.ats.model.DocumentResponse;
-import hu.robottx.ats.model.PagedUserResponse;
-import hu.robottx.ats.model.SearchAndPageRequest;
+import hu.robottx.ats.model.UserResponse;
 import hu.robottx.ats.repository.UserRepository;
+import hu.robottx.ats.security.service.CompanySecurityService;
 import hu.robottx.ats.security.service.SecurityService;
-import hu.robottx.ats.util.UserQueryParamsUtil;
 
 @Slf4j
 @Service
@@ -32,28 +30,29 @@ import hu.robottx.ats.util.UserQueryParamsUtil;
 public class UserServiceImpl implements UserService {
 
     private static final String CV_KEY_PREFIX = "cv";
+    private static final String USER_NOT_FOUND_BY_EMAIL_MESSAGE = "No user with this email";
 
     private final UserRepository userRepository;
     private final DocumentService documentService;
     private final SecurityService securityService;
     private final UserSyncService userSyncService;
+    private final CompanySecurityService companySecurityService;
 
     @Override
     @Transactional(readOnly = true)
-    public PagedUserResponse getUsers(SearchAndPageRequest request) {
-        log.debug("Getting users with request: {}", request);
-        Specification<User> spec = UserQueryParamsUtil.createSearchSpecification(request);
-        int pageNumber = request != null && request.getPageNumber() != null ? request.getPageNumber() : 0;
-        int pageSize = request != null && request.getPageSize() != null ? request.getPageSize() : 20;
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-        try {
-            Page<User> users = userRepository.findAll(spec, pageRequest);
-            return UserMapper.INSTANCE.toPagedUserResponse(users);
-        } catch (RuntimeException ex) {
-            log.debug("Invalid query or sort parameters: query='{}', sort='{}'",
-                    request != null ? request.getQuery() : null, request != null ? request.getSort() : null);
-            throw new IllegalArgumentException("Invalid query or sort parameters", ex);
+    public UserResponse lookupUserByEmail(String email) {
+        String userId = securityService.getId();
+        if (companySecurityService.getCompanyIdsWithPermission(CompanyPermission.MANAGE_EMPLOYEES).isEmpty()) {
+            log.debug("User {} cannot look up users: does not manage any company team", userId);
+            throw new AuthorizationDeniedException("Only users who manage a company team can look up users");
         }
+        if (StringUtils.isBlank(email)) {
+            throw new IllegalArgumentException("Email must not be blank");
+        }
+        log.debug("Looking up user by email for user {}", userId);
+        return userRepository.findFirstByEmailIgnoreCase(email.trim())
+                .map(UserMapper.INSTANCE::toUserResponse)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND_BY_EMAIL_MESSAGE));
     }
 
     @Override

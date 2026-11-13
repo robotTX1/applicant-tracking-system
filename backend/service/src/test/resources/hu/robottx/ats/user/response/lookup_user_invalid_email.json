@@ -1,0 +1,5 @@
+{
+  "type": "ClientError",
+  "title": "Failed to validate request",
+  "details": "email must be a well-formed email address"
+}
