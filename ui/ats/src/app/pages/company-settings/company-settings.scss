@@ -1,0 +1,92 @@
+@use '../../styles/breadcrumb';
+
+:host {
+  display: block;
+  padding: 32px 20px 64px;
+}
+
+.settings-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.settings-card,
+.danger-zone {
+  padding: 20px 24px;
+  border-radius: 16px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
+
+  h2 {
+    margin: 0 0 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+
+  mat-spinner {
+    display: inline-block;
+    margin-right: 8px;
+  }
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+  border-color: color-mix(in srgb, var(--mat-sys-error) 45%, transparent);
+
+  h2 {
+    margin-bottom: 4px;
+    color: var(--mat-sys-error);
+  }
+
+  p {
+    margin: 0;
+    max-width: 480px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.delete-button {
+  color: var(--mat-sys-error);
+  border-color: var(--mat-sys-error);
+}

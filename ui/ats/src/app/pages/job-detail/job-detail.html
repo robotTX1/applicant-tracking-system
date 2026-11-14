@@ -1,0 +1,121 @@
+<div class="detail-container">
+  <a mat-button routerLink="/jobs" [queryParams]="backQuery" class="back-link">
+    <mat-icon>arrow_back</mat-icon>
+    <span>Back to jobs</span>
+  </a>
+
+  @if (notFound()) {
+    <div class="state-card">
+      <div class="state-icon-circle">
+        <mat-icon>search_off</mat-icon>
+      </div>
+      <h1>Job not found</h1>
+      <p class="state-description">This job doesn't exist or is no longer available.</p>
+      <a mat-flat-button routerLink="/jobs">Browse jobs</a>
+    </div>
+  } @else if (detail.isLoading()) {
+    <div class="detail-skeleton" aria-busy="true" aria-label="Loading job">
+      <span class="skeleton line w-60 tall"></span>
+      <span class="skeleton line w-40"></span>
+      <div class="skeleton block"></div>
+    </div>
+  } @else if (detail.error()) {
+    <div class="state-card" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>cloud_off</mat-icon>
+      </div>
+      <h1>Couldn't load this job</h1>
+      <p class="state-description">Something went wrong while loading the job listing.</p>
+      <button mat-flat-button type="button" (click)="detail.reload()">
+        <mat-icon>refresh</mat-icon>
+        <span>Try again</span>
+      </button>
+    </div>
+  } @else if (detail.value(); as data) {
+    <article class="job-article">
+      <header class="job-header">
+        <div class="header-main">
+          @if (statusLabel(); as label) {
+            <span class="status-chip" [class.closed]="data.job.status === 'CLOSED'">
+              <mat-icon aria-hidden="true">{{
+                data.job.status === 'CLOSED' ? 'lock' : 'edit_note'
+              }}</mat-icon>
+              {{ label }}
+            </span>
+          }
+          <h1 class="job-title">{{ data.job.title }}</h1>
+          <div class="job-meta">
+            @if (data.company) {
+              <span class="meta-item company-name">
+                <mat-icon aria-hidden="true">business</mat-icon>
+                {{ data.company.name }}
+              </span>
+            }
+            <span class="meta-item">
+              <mat-icon aria-hidden="true">location_on</mat-icon>
+              {{ data.job.location }}
+            </span>
+            <span class="meta-item" [matTooltip]="(data.job.createdAt | date: 'medium') ?? ''">
+              <mat-icon aria-hidden="true">schedule</mat-icon>
+              Posted {{ data.job.createdAt | relativeTime }}
+            </span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          @if (data.application; as application) {
+            <div class="applied-banner" role="status">
+              <mat-icon aria-hidden="true">check_circle</mat-icon>
+              <span> You applied {{ application.createdAt | relativeTime }} </span>
+            </div>
+            <a mat-stroked-button routerLink="/my-applications">View my applications</a>
+          } @else if (canApply()) {
+            <button mat-flat-button type="button" class="apply-button" (click)="openApplyDialog()">
+              <mat-icon>send</mat-icon>
+              <span>Apply now</span>
+            </button>
+          } @else if (isPublished() && isOwnCompany()) {
+            <p class="own-company-note">
+              <mat-icon aria-hidden="true">info</mat-icon>
+              <span>You work at this company, so you can't apply to this job.</span>
+            </p>
+          }
+        </div>
+      </header>
+
+      <div class="detail-grid">
+        <section class="content-card description-card" aria-labelledby="description-heading">
+          <h2 id="description-heading" class="section-title">About the role</h2>
+          <markdown class="markdown-body" [data]="data.job.description" />
+        </section>
+
+        @if (data.company; as company) {
+          <aside class="content-card company-card" aria-labelledby="company-heading">
+            <div class="company-header">
+              <div class="company-avatar" aria-hidden="true">
+                {{ getCompanyInitial(company.name) }}
+              </div>
+              <h2 id="company-heading" class="company-title">{{ company.name }}</h2>
+            </div>
+            @if (company.description) {
+              <p class="company-description">{{ company.description }}</p>
+            }
+            @if (company.websiteUrl | externalUrl; as websiteHref) {
+              <a
+                [href]="websiteHref"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="website-link"
+              >
+                <mat-icon aria-hidden="true">language</mat-icon>
+                <span class="url-text">{{ company.websiteUrl }}</span>
+                <mat-icon aria-hidden="true" class="external-icon">open_in_new</mat-icon>
+                <span class="cdk-visually-hidden">(opens in a new tab)</span>
+              </a>
+            }
+          </aside>
+        }
+      </div>
+    </article>
+  }
+</div>

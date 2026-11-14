@@ -1,0 +1,15 @@
+<mat-sidenav-container class="app-sidenav-container">
+  <!-- Mobile Side Drawer -->
+  <mat-sidenav #sidenav mode="over" class="app-sidenav">
+    <app-nav-drawer (navItemClicked)="sidenav.close()" />
+  </mat-sidenav>
+
+  <!-- Main Content Area -->
+  <mat-sidenav-content class="app-sidenav-content">
+    <app-header (menuToggle)="sidenav.toggle()" />
+
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

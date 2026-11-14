@@ -1,0 +1,33 @@
+<div class="template-dialog-header">
+  <div class="header-icon" [class.offer-icon]="isOffer" [class.decline-icon]="!isOffer">
+    <mat-icon>{{ isOffer ? 'check_circle' : 'cancel' }}</mat-icon>
+  </div>
+  <div class="header-titles">
+    <h2 mat-dialog-title class="dialog-title">{{ typeLabel }} Preview</h2>
+    <span class="dialog-subtitle">Automated email sent to candidates</span>
+  </div>
+</div>
+
+<mat-dialog-content class="dialog-content">
+  <div class="meta-section">
+    <div class="meta-item">
+      <span class="meta-label">Category:</span>
+      <span class="badge" [class.badge-offer]="isOffer" [class.badge-decline]="!isOffer">
+        {{ isOffer ? 'OFFER' : 'DECLINE' }}
+      </span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Subject:</span>
+      <span class="subject-text">{{ subject || '(No subject)' }}</span>
+    </div>
+  </div>
+
+  <div class="body-section">
+    <div class="body-label">Template Body:</div>
+    <pre class="body-text">{{ body || '(No content)' }}</pre>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-flat-button color="primary" [mat-dialog-close]="true">Close</button>
+</mat-dialog-actions>

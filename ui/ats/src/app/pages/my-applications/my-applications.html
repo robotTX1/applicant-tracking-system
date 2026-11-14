@@ -1,0 +1,189 @@
+<div class="applications-container">
+  <header class="page-header">
+    <h1 class="page-title">My Applications</h1>
+    <p class="page-subtitle">Track where you are in each hiring process.</p>
+  </header>
+
+  <mat-chip-listbox
+    class="filter-chips"
+    aria-label="Filter applications"
+    [value]="status()"
+    (change)="setFilter($event.value)"
+  >
+    @for (f of filters; track f.value) {
+      <mat-chip-option
+        [value]="f.value"
+        [selected]="f.value === status()"
+        (selectionChange)="keepActiveFilterSelected($event)"
+      >
+        {{ f.label }}
+      </mat-chip-option>
+    }
+  </mat-chip-listbox>
+
+  @if (applications.isLoading()) {
+    <div class="application-list" aria-busy="true" aria-label="Loading applications">
+      @for (i of skeletons; track i) {
+        <div class="skeleton-card" aria-hidden="true">
+          <span class="skeleton line w-60"></span>
+          <span class="skeleton line w-40"></span>
+          <span class="skeleton line w-90"></span>
+        </div>
+      }
+    </div>
+  } @else if (applications.error()) {
+    <div class="state-card" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>cloud_off</mat-icon>
+      </div>
+      <h2>Couldn't load your applications</h2>
+      <p class="state-description">Something went wrong while loading your applications.</p>
+      <button mat-flat-button type="button" (click)="applications.reload()">
+        <mat-icon>refresh</mat-icon>
+        <span>Try again</span>
+      </button>
+    </div>
+  } @else if (applications.value(); as result) {
+    @if (result.items.length === 0) {
+      <div class="state-card">
+        <div class="state-icon-circle">
+          <mat-icon>assignment</mat-icon>
+        </div>
+        @if (status() === 'all') {
+          <h2>No applications yet</h2>
+          <p class="state-description">
+            When you apply for a job, you can follow its progress here.
+          </p>
+          <a mat-flat-button routerLink="/jobs">
+            <mat-icon>search</mat-icon>
+            <span>Find jobs</span>
+          </a>
+        } @else {
+          <h2>Nothing here</h2>
+          <p class="state-description">
+            You have no
+            {{ status() === 'active' ? 'applications in progress' : 'decided applications' }}.
+          </p>
+          <button mat-stroked-button type="button" (click)="setFilter('all')">Show all</button>
+        }
+      </div>
+    } @else {
+      <mat-accordion class="application-list" multi>
+        @for (item of result.items; track item.application.id) {
+          <mat-expansion-panel class="application-card" [class]="'tone-' + item.status.tone">
+            <mat-expansion-panel-header class="card-header">
+              <div class="header-content">
+                <div class="header-top">
+                  <div class="job-info">
+                    <span class="job-title" [class.unlisted]="!item.job">{{ jobTitle(item) }}</span>
+                    <span class="job-meta">
+                      @if (item.companyName) {
+                        <span class="company-name">{{ item.companyName }}</span>
+                      }
+                      @if (item.job) {
+                        <span>{{ item.job.location }}</span>
+                      }
+                      <span>Applied {{ item.application.createdAt | relativeTime }}</span>
+                    </span>
+                  </div>
+                  <span class="status-chip">
+                    @switch (item.status.tone) {
+                      @case ('offer') {
+                        <mat-icon aria-hidden="true">celebration</mat-icon>
+                      }
+                      @case ('declined') {
+                        <mat-icon aria-hidden="true">block</mat-icon>
+                      }
+                    }
+                    {{ item.status.label }}
+                  </span>
+                </div>
+
+                <div class="stage-progress">
+                  <span class="cdk-visually-hidden">{{ progressLabel(item.status) }}</span>
+                  <ol aria-hidden="true">
+                    @for (stage of stages; track stage; let i = $index) {
+                      <li
+                        [class.done]="item.status.step !== null && i <= item.status.step"
+                        [class.current]="i === item.status.step"
+                      >
+                        <span class="stage-dot"></span>
+                        <span class="stage-label">{{ stage }}</span>
+                      </li>
+                    }
+                  </ol>
+                </div>
+              </div>
+            </mat-expansion-panel-header>
+
+            <div class="card-body">
+              <h3 class="body-title">Your message</h3>
+              @if (item.application.applicantMessage) {
+                <p class="applicant-message">{{ item.application.applicantMessage }}</p>
+              } @else {
+                <p class="applicant-message empty">You didn't add a message.</p>
+              }
+
+              @if (!item.job) {
+                <p class="unlisted-note">
+                  <mat-icon aria-hidden="true">info</mat-icon>
+                  <span
+                    >The company has closed this job posting, so its details are no longer
+                    shown.</span
+                  >
+                </p>
+              }
+
+              <div class="card-actions">
+                @if (item.job) {
+                  <a mat-stroked-button [routerLink]="['/jobs', item.job.id]">
+                    <mat-icon>open_in_new</mat-icon>
+                    <span>View job posting</span>
+                  </a>
+                }
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="downloadingId() === item.application.id"
+                  (click)="downloadCv(item)"
+                >
+                  @if (downloadingId() === item.application.id) {
+                    <mat-spinner diameter="18" />
+                  } @else {
+                    <mat-icon>download</mat-icon>
+                  }
+                  <span>Download my CV</span>
+                </button>
+                @if (item.status.canWithdraw) {
+                  <button
+                    mat-button
+                    type="button"
+                    class="withdraw-button"
+                    [disabled]="withdrawingId() === item.application.id"
+                    (click)="withdraw(item)"
+                  >
+                    <mat-icon>undo</mat-icon>
+                    <span>Withdraw</span>
+                  </button>
+                }
+              </div>
+            </div>
+          </mat-expansion-panel>
+        }
+      </mat-accordion>
+
+      @if (result.page.totalPages > 1) {
+        <mat-paginator
+          class="applications-paginator"
+          [length]="result.page.totalElements"
+          [pageIndex]="page() - 1"
+          [pageSize]="pageSize"
+          [hidePageSize]="true"
+          [showFirstLastButtons]="true"
+          (page)="onPage($event)"
+          aria-label="Select page of applications"
+        />
+      }
+    }
+  }
+</div>

@@ -1,0 +1,472 @@
+// Landing page: the hero alone on the first screen, every section one screen, equal edges,
+// the app's Material tokens.
+
+:host {
+  // The app header (mat-toolbar) scrolls away with the page: the hero takes the rest of screen one
+  --nav: 64px;
+  --pad-x: 120px;
+  --pad-top: 112px;
+  --pad-bottom: 72px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --r-lg: 24px;
+
+  display: block;
+  background: var(--app-canvas-bg);
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(1200px + 2 * var(--pad-x));
+  margin: 0 auto;
+  padding-inline: var(--pad-x);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+h2 {
+  font-size: clamp(2rem, 3.6vw, 3rem);
+  font-weight: 800;
+  line-height: 1.08;
+  max-width: 18ch;
+}
+
+.section__lead {
+  margin: 16px 0 0;
+  max-width: 560px;
+  font-size: 1.1rem;
+  line-height: 1.55;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Sections: exactly one screen each
+
+.section,
+.closing {
+  position: relative;
+  box-sizing: border-box;
+  height: 100svh;
+  padding: var(--pad-top) 0 var(--pad-bottom);
+  overflow: clip;
+}
+
+// Hero (triptych: headline · collage · button)
+
+.hero {
+  box-sizing: border-box;
+  height: calc(100svh - var(--nav));
+  padding: 48px 0 56px;
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 24px;
+  height: 100%;
+}
+
+.hero__text {
+  grid-column: 1 / span 3;
+  align-self: center;
+}
+
+.hero h1 {
+  font-size: 3.25rem;
+  font-weight: 600;
+  line-height: 1.04;
+}
+
+.hero__lead {
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--app-card-border);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.collage-slot {
+  grid-column: 4 / span 6;
+  min-height: 0;
+}
+
+.hero__cta {
+  grid-column: 10 / span 3;
+  align-self: end;
+  justify-self: end;
+}
+
+.btn-xl {
+  --mat-button-filled-container-height: 64px;
+  --mat-button-filled-label-text-size: 1.25rem;
+  padding-inline: 32px;
+}
+
+// Section 2: the dark band
+
+.section--band {
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+
+  .section__lead,
+  li {
+    color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 78%, transparent);
+  }
+}
+
+.sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 56px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  border-radius: var(--r-lg);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 18%, transparent);
+
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.5;
+  }
+}
+
+.side__icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: var(--mat-sys-inverse-primary);
+}
+
+.side__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.section--band .link-btn {
+  --mat-button-text-label-text-color: var(--mat-sys-inverse-primary);
+}
+
+// The circular reveal (landing.ts setUpReveal): an inset panel in the hero's ground, its hole
+// widening with a hairline ring. Present only while the script runs it; gone once open.
+.reveal {
+  display: none;
+}
+
+.section--band.is-revealing:not(.is-open) .reveal {
+  --reveal-r: 0px;
+  --reveal-cx: 50%;
+  --reveal-cy: 50%;
+
+  display: block;
+  position: absolute;
+  inset: clamp(8px, 1.2vw, 18px);
+  z-index: 2;
+  overflow: clip;
+  border-radius: var(--r-lg);
+  pointer-events: none;
+}
+
+.reveal__cover {
+  position: absolute;
+  inset: 0;
+  background: var(--app-canvas-bg);
+  mask-image: radial-gradient(
+    circle at var(--reveal-cx) var(--reveal-cy),
+    transparent calc(var(--reveal-r) - 0.5px),
+    #000 var(--reveal-r)
+  );
+}
+
+.reveal__ring {
+  position: absolute;
+  left: var(--reveal-cx);
+  top: var(--reveal-cy);
+  width: calc(var(--reveal-r) * 2);
+  height: calc(var(--reveal-r) * 2);
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--mat-sys-primary);
+  border-radius: 50%;
+}
+
+// Section 3: the product window takes the height left and fades out its last rows
+
+#product .wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#product app-product-window {
+  flex: 1;
+  min-height: 0;
+  margin-top: 40px;
+}
+
+// Section 4: close and footer (close-word, footer-dark)
+
+.closing {
+  background: #111317;
+  color: #f2f3f5;
+}
+
+.closing__wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.closing__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.closing__cta {
+  container-type: inline-size;
+}
+
+// The name fills the content width exactly, from the left edge line to the right one
+.closing__word {
+  margin: 48px 0 0;
+  font-size: 11.4cqi;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  white-space: nowrap;
+  color: #f2f3f5;
+}
+
+.closing__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid rgb(255 255 255 / 14%);
+  font-size: 0.9rem;
+  color: #b9bdc5;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: inherit;
+    text-decoration: none;
+    background: linear-gradient(currentColor, currentColor) 0 calc(100% - 10px) / 0 1px no-repeat;
+    transition:
+      background-size 0.25s var(--ease),
+      color 0.15s;
+
+    &:hover,
+    &:focus-visible {
+      color: #fff;
+      background-size: 100% 1px;
+    }
+  }
+}
+
+.footer-legal {
+  margin: 0;
+}
+
+// Buttons step on hover and press on click (house rule 5)
+
+.landing [matButton] {
+  transition: transform 0.15s var(--ease);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+// The hero enters once on load
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.hero[data-enter] {
+  .hero__text,
+  .collage-slot,
+  .hero__cta {
+    animation: enter 0.8s var(--ease) both;
+  }
+
+  .collage-slot {
+    animation-delay: 0.1s;
+  }
+
+  .hero__cta {
+    animation-delay: 0.2s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero[data-enter] * {
+    animation: none !important;
+  }
+}
+
+// Tablet
+
+@media (max-width: 1279px) {
+  :host {
+    --pad-x: 48px;
+  }
+
+  .hero__grid {
+    grid-template-rows: 1fr auto;
+  }
+
+  .hero__text {
+    grid-column: 1 / span 4;
+  }
+
+  .collage-slot {
+    grid-column: 5 / span 8;
+    grid-row: 1 / span 2;
+  }
+
+  .hero__cta {
+    grid-column: 1 / span 4;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .hero h1 {
+    font-size: 2.75rem;
+  }
+}
+
+@media (max-width: 1023px) and (orientation: portrait), (max-width: 767px) {
+  .hero__grid {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    row-gap: 24px;
+  }
+
+  .hero__text,
+  .collage-slot,
+  .hero__cta {
+    grid-column: 1 / -1;
+  }
+
+  .hero__text {
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .collage-slot {
+    grid-row: 2;
+  }
+
+  .hero__cta {
+    grid-row: 3;
+  }
+}
+
+// Phone: one column, sections grow with what they hold
+
+@media (max-width: 639px) {
+  :host {
+    --nav: 56px;
+    --pad-x: 24px;
+    --pad-top: 96px;
+    --pad-bottom: 48px;
+  }
+
+  .section,
+  .closing {
+    height: auto;
+    min-height: 100lvh;
+  }
+
+  // The hero is at least one screen and grows rather than squeeze the collage under the button
+  .hero {
+    height: auto;
+    min-height: calc(100svh - var(--nav));
+  }
+
+  .hero__grid {
+    grid-template-rows: auto 280px auto;
+    row-gap: 16px;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero__cta {
+    justify-self: stretch;
+
+    .btn-xl {
+      width: 100%;
+      --mat-button-filled-container-height: 56px;
+    }
+  }
+
+  .sides {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 32px;
+  }
+
+  .side {
+    padding: 24px;
+  }
+
+  .side__actions [matButton] {
+    width: 100%;
+  }
+
+  .closing__head .btn-xl {
+    width: 100%;
+  }
+
+  .closing__word {
+    font-size: 3rem;
+    white-space: normal;
+  }
+}

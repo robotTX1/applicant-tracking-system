@@ -1,0 +1,86 @@
+<ng-container [formGroup]="form()">
+  <div class="form-grid">
+    <!-- Company Name -->
+    <mat-form-field appearance="outline" class="col-name">
+      <mat-label>Company Name</mat-label>
+      <input
+        matInput
+        formControlName="name"
+        placeholder="e.g. Acme Corporation"
+        maxlength="100"
+        required
+      />
+      <mat-icon matPrefix class="field-icon">domain</mat-icon>
+      @if (form().controls.name.hasError('required') || form().controls.name.hasError('blank')) {
+        <mat-error>Company name is required</mat-error>
+      }
+      @if (form().controls.name.hasError('nameExists')) {
+        <mat-error>A company with this name already exists</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Founding Date -->
+    <mat-form-field appearance="outline" class="col-date">
+      <mat-label>Founding Date</mat-label>
+      <input
+        matInput
+        [matDatepicker]="picker"
+        [max]="maxDate"
+        formControlName="foundingDate"
+        placeholder="YYYY-MM-DD"
+        required
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      @if (form().controls.foundingDate.hasError('required')) {
+        <mat-error>Founding date is required</mat-error>
+      }
+      @if (form().controls.foundingDate.hasError('matDatepickerMax')) {
+        <mat-error>Founding date cannot be in the future</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Website URL -->
+    <mat-form-field appearance="outline" class="col-full">
+      <mat-label>Website URL</mat-label>
+      <input
+        matInput
+        type="url"
+        formControlName="websiteUrl"
+        (blur)="normalizeWebsite()"
+        placeholder="e.g. https://example.com"
+        maxlength="2000"
+        required
+      />
+      <mat-icon matPrefix class="field-icon">language</mat-icon>
+      <mat-hint>e.g. https://example.com (https:// auto-added if omitted)</mat-hint>
+      @if (form().controls.websiteUrl.hasError('required')) {
+        <mat-error>Website URL is required</mat-error>
+      }
+      @if (form().controls.websiteUrl.hasError('invalidUrl')) {
+        <mat-error>Please enter a valid web address (e.g. https://acme.com)</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Description -->
+    <mat-form-field appearance="outline" class="col-full col-description">
+      <mat-label>Company Description</mat-label>
+      <textarea
+        matInput
+        formControlName="description"
+        placeholder="Describe your company, mission, culture, and what makes your team unique..."
+        rows="4"
+        maxlength="2000"
+        #descInput
+        required
+      ></textarea>
+      <mat-hint align="end">{{ descInput.value.length }} / 2000</mat-hint>
+      @if (
+        form().controls.description.hasError('required') ||
+        form().controls.description.hasError('blank')
+      ) {
+        <mat-error>Company description is required</mat-error>
+      }
+    </mat-form-field>
+  </div>
+</ng-container>

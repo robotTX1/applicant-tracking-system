@@ -1,0 +1,75 @@
+:host {
+  display: block;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto 1fr;
+  column-gap: 16px;
+  row-gap: 8px;
+  flex: 1;
+
+  .col-name {
+    grid-column: 1;
+  }
+  .col-date {
+    grid-column: 2;
+  }
+  .col-full {
+    grid-column: 1 / -1;
+  }
+
+  .col-description {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    ::ng-deep {
+      .mat-mdc-text-field-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .mat-mdc-form-field-flex {
+        flex: 1;
+        display: flex;
+      }
+
+      .mat-mdc-form-field-infix {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      textarea.mat-mdc-input-element {
+        flex: 1;
+        height: 100% !important;
+        resize: none;
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    .col-name,
+    .col-date,
+    .col-full {
+      grid-column: 1 / -1;
+    }
+    .col-description {
+      height: auto;
+    }
+  }
+
+  mat-form-field {
+    width: 100%;
+    .field-icon {
+      color: var(--mat-sys-on-surface-variant);
+      margin-right: 8px;
+    }
+  }
+}

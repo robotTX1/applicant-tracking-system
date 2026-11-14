@@ -1,0 +1,133 @@
+@use '../landing-ui';
+
+:host {
+  display: block;
+}
+
+// Cut by the section's foot on purpose: the last rows fade (taste-skill's bleed, not a hard cut)
+.app-frame {
+  height: 100%;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 96px), transparent);
+}
+
+.app-frame {
+  border-radius: 16px;
+  border: 1px solid var(--app-card-border);
+  background: var(--app-card-bg);
+  box-shadow: var(--app-card-shadow-hover);
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+
+.app-frame__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--app-card-border);
+  background: var(--mat-sys-surface-container-low);
+
+  i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--mat-sys-outline-variant);
+  }
+
+  span {
+    margin-left: 10px;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.app-frame__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+.app-table {
+  padding: 16px 20px;
+}
+
+.app-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) 90px minmax(0, 1.3fr) 100px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-top: 1px solid var(--app-card-border);
+
+  > span:first-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  small {
+    color: var(--mat-sys-on-surface-variant);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sc {
+    justify-self: start;
+  }
+
+  &--head {
+    margin-top: 12px;
+    border-top: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  &.is-open {
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+  }
+}
+
+.app-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-left: 1px solid var(--app-card-border);
+  background: var(--mat-sys-surface-container-lowest);
+
+  p {
+    margin: 0;
+    line-height: 1.45;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .st {
+    align-self: flex-start;
+  }
+}
+
+.app-panel__name {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1023px) {
+  .app-frame__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .app-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    > :nth-child(3),
+    > :nth-child(4) {
+      display: none;
+    }
+  }
+}

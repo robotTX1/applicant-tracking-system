@@ -1,0 +1,117 @@
+// Material 3 navigation drawer: 12px inset, 56px pill destinations, the active one in the
+// secondary container (the nav list's own activated state).
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0 12px 12px;
+  background-color: var(--app-card-bg);
+  color: var(--mat-sys-on-surface);
+
+  // Pill-shaped destinations with the M3 active indicator
+  --mat-list-active-indicator-shape: var(--mat-sys-corner-full);
+  --mat-list-active-indicator-color: var(--mat-sys-secondary-container);
+  --mat-list-list-item-one-line-container-height: 56px;
+  --mat-list-list-item-leading-icon-color: var(--mat-sys-on-surface-variant);
+  --mat-list-list-item-label-text-color: var(--mat-sys-on-surface-variant);
+  --mat-list-list-item-label-text-weight: 500;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding-left: 4px;
+}
+
+.drawer-brand {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--mat-sys-primary);
+  }
+}
+
+.drawer-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  // Room for the focus ring of the first and last items
+  margin-inline: -4px;
+  padding-inline: 4px;
+}
+
+.drawer-list {
+  padding: 0;
+
+  .mat-mdc-list-item {
+    border-radius: var(--mat-sys-corner-full);
+    padding-inline: 16px 24px;
+    margin: 5px 0;
+
+    &:focus-visible {
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: -2px;
+    }
+  }
+
+  // Action rows are <button>s: drop the browser's button look so they match the links
+  button.mat-mdc-list-item {
+    width: 100%;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .mdc-list-item--activated {
+    --mat-list-list-item-leading-icon-color: var(--mat-sys-on-secondary-container);
+    --mat-list-list-item-label-text-color: var(--mat-sys-on-secondary-container);
+    --mat-list-list-item-hover-label-text-color: var(--mat-sys-on-secondary-container);
+    --mat-list-list-item-focus-label-text-color: var(--mat-sys-on-secondary-container);
+    font-weight: 600;
+  }
+
+  .mat-mdc-list-item-icon {
+    margin-right: 12px;
+  }
+}
+
+.drawer-divider {
+  margin: 8px 16px;
+}
+
+.drawer-section {
+  margin: 0;
+  padding: 12px 16px 8px;
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.drawer-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 4px 4px;
+  border-top: 1px solid var(--app-card-border);
+
+  button {
+    width: 100%;
+    height: 48px;
+  }
+}

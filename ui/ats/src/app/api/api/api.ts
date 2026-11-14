@@ -1,0 +1,15 @@
+export * from './applications.service';
+import { ApplicationsService } from './applications.service';
+export * from './companies.service';
+import { CompaniesService } from './companies.service';
+export * from './email-templates.service';
+import { EmailTemplatesService } from './email-templates.service';
+export * from './employees.service';
+import { EmployeesService } from './employees.service';
+export * from './feedbacks.service';
+import { FeedbacksService } from './feedbacks.service';
+export * from './job-listings.service';
+import { JobListingsService } from './job-listings.service';
+export * from './users.service';
+import { UsersService } from './users.service';
+export const APIS = [ApplicationsService, CompaniesService, EmailTemplatesService, EmployeesService, FeedbacksService, JobListingsService, UsersService];

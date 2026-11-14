@@ -1,0 +1,19 @@
+.app-sidenav-container {
+  height: 100vh;
+  background-color: var(--app-canvas-bg);
+}
+
+.app-sidenav {
+  width: 280px;
+  max-width: 85vw;
+}
+
+.app-sidenav-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-content {
+  flex: 1 1 auto;
+}

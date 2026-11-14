@@ -1,0 +1,4 @@
+# OpenAPI Generator Ignore
+git_push.sh
+.gitignore
+README.md

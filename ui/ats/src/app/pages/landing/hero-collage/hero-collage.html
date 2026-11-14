@@ -1,0 +1,97 @@
+<div
+  class="collage"
+  role="img"
+  aria-label="Three steps in ATS: a candidate applies with a CV, a hiring team reads the AI score and review, then sends an offer"
+>
+  <!-- Set 1: a candidate applies -->
+  <div class="collage__set" [class.is-on]="collageSet() === 0">
+    <div class="piece pc-job" style="left: 5%; top: 5%; width: 62%">
+      <div class="pc-head">
+        <span class="pc-logo" aria-hidden="true">T</span>
+        <span><b>Junior Java Developer</b><small>Test Company · Budapest</small></span>
+      </div>
+      <p>Java 21, Spring Boot and REST APIs in a team of six. Posted 2 days ago.</p>
+      <span class="pc-btn">Apply now</span>
+    </div>
+    <div class="piece pc-apply" style="left: 36%; top: 37%; width: 59%">
+      <span class="pc-label">Your CV</span>
+      <div class="pc-file">
+        <span class="pc-pdf">PDF</span>
+        <span>anna-kovacs-cv.pdf</span>
+        <small>212 KB</small>
+      </div>
+      <span class="pc-label">Message to the recruiter</span>
+      <p>I build Spring Boot services at work and want to grow in Java.</p>
+      <span class="pc-btn pc-btn--wide">Submit application</span>
+    </div>
+    <div class="piece pc-progress" style="left: 5%; top: 74%; width: 42%">
+      <span class="pc-label">Your application</span>
+      <b>Under review</b>
+      <div class="pc-dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <!-- Set 2: the hiring team screens -->
+  <div class="collage__set" [class.is-on]="collageSet() === 1" aria-hidden="true">
+    <div class="piece pc-table" style="left: 5%; top: 5%; width: 70%">
+      <div class="pc-tabs">
+        <span class="on">All 9</span><span>New 4</span><span>HR 2</span><span>Technical 1</span>
+      </div>
+      <div class="pc-row">
+        <b>Anna Kovács</b><em class="sc hi">88</em><span class="st">New</span>
+      </div>
+      <div class="pc-row">
+        <b>Gréta Kiss</b><em class="sc hi">91</em><span class="st tech">Tech interview</span>
+      </div>
+      <div class="pc-row">
+        <b>Ferenc Varga</b><em class="sc mid">69</em><span class="st hr">HR interviewed</span>
+      </div>
+      <div class="pc-row">
+        <b>Dávid Tóth</b><em class="sc lo">31</em><span class="st">New</span>
+      </div>
+    </div>
+    <div class="piece pc-review" style="left: 36%; top: 52%; width: 59%">
+      <div class="pc-head pc-head--split">
+        <span class="pc-label">AI review</span><em class="sc hi">88 / 100</em>
+      </div>
+      <p>
+        <b>Strengths:</b> Java, Spring Boot, Git and Docker match the role. <b>Gaps:</b> little
+        Kubernetes experience.
+      </p>
+    </div>
+    <div class="piece pc-cv" style="left: 5%; top: 78%; width: 36%">
+      <span class="pc-pdf">PDF</span>
+      <b>Download CV</b>
+    </div>
+  </div>
+
+  <!-- Set 3: interviews and the offer -->
+  <div class="collage__set" [class.is-on]="collageSet() === 2" aria-hidden="true">
+    <div class="piece pc-feedback" style="left: 5%; top: 5%; width: 60%">
+      <div class="pc-head pc-head--split">
+        <span class="pc-label">Technical interview</span><em class="sc hi">82 / 100</em>
+      </div>
+      <p>Solid Java and Spring basics, explained REST design well, needs more SQL practice.</p>
+      <small>You · just now</small>
+    </div>
+    <div class="piece pc-confirm" style="left: 38%; top: 36%; width: 57%">
+      <b>Make an offer to Gréta Kiss?</b>
+      <p>She will be emailed an offer right away, using this job's offer template.</p>
+      <div class="pc-actions"><span>Cancel</span><span class="pc-btn">Send offer</span></div>
+    </div>
+    <div class="piece pc-mail" style="left: 5%; top: 68%; width: 56%">
+      <span class="pc-label">Email sent</span>
+      <b>Job offer: Junior Java Developer at Test Company</b>
+      <p>Dear Gréta Kiss, we are pleased to offer you the position.</p>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="collage__pause"
+    (click)="toggleCollage()"
+    [attr.aria-label]="collagePaused() ? 'Play the product preview' : 'Pause the product preview'"
+  >
+    <mat-icon aria-hidden="true">{{ collagePaused() ? 'play_arrow' : 'pause' }}</mat-icon>
+  </button>
+</div>

@@ -1,0 +1,115 @@
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: min(440px, 100%);
+}
+
+.intro {
+  margin: 0 0 12px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.email-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.email-field {
+  flex: 1;
+}
+
+.find-button {
+  height: 56px;
+
+  mat-spinner {
+    display: inline-block;
+    margin-right: 8px;
+  }
+}
+
+.lookup-result:empty {
+  display: none;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container);
+
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    color: var(--mat-sys-primary);
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+}
+
+.user-email {
+  font-size: 0.85rem;
+  color: var(--mat-sys-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.lookup-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+
+  &.error {
+    background: var(--mat-sys-error-container);
+    color: var(--mat-sys-on-error-container);
+  }
+}
+
+.role-picker {
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+}
+
+.role-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-label {
+  display: block;
+  font-weight: 600;
+}
+
+.role-description {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+mat-dialog-actions mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}

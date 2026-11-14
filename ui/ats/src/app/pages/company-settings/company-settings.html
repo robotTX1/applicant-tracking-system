@@ -1,0 +1,89 @@
+<div class="settings-container">
+  @if (!company()) {
+    <div class="state-card" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>domain_disabled</mat-icon>
+      </div>
+      <h1>Company not found</h1>
+      <p class="state-description">
+        This company doesn't exist, or you're not a member of its team.
+      </p>
+      <a mat-flat-button routerLink="/companies">
+        <mat-icon>domain</mat-icon>
+        <span>My companies</span>
+      </a>
+    </div>
+  } @else {
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/companies">My Companies</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <a [routerLink]="['/companies', companyId(), 'jobs']" [title]="company()!.name">{{
+        company()!.name
+      }}</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <span aria-current="page">Settings</span>
+    </nav>
+
+    <header class="page-header">
+      <h1 class="page-title">Company settings</h1>
+      <p class="page-subtitle">
+        @if (role.hasValue() && !canEdit()) {
+          Only owners and co-owners can change these details.
+        } @else {
+          Candidates see these details on every job you post.
+        }
+      </p>
+    </header>
+
+    <section class="settings-card" aria-labelledby="details-title">
+      <h2 id="details-title">Company details</h2>
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <app-company-fields [form]="form" />
+
+        @if (error()) {
+          <p class="error" role="alert">
+            <mat-icon aria-hidden="true">error_outline</mat-icon>
+            <span>{{ error() }}</span>
+          </p>
+        }
+
+        @if (canEdit()) {
+          <div class="form-actions">
+            <button
+              mat-button
+              type="button"
+              (click)="discard()"
+              [disabled]="form.pristine || saving()"
+            >
+              Discard changes
+            </button>
+            <button mat-flat-button type="submit" [disabled]="form.pristine || saving()">
+              @if (saving()) {
+                <mat-spinner diameter="18" />
+              } @else {
+                <mat-icon>save</mat-icon>
+              }
+              <span>Save changes</span>
+            </button>
+          </div>
+        }
+      </form>
+    </section>
+
+    @if (isOwner()) {
+      <section class="danger-zone" aria-labelledby="danger-title">
+        <div>
+          <h2 id="danger-title">Delete company</h2>
+          <p>
+            Permanently deletes {{ company()!.name }} with all its jobs, applications, team and
+            email templates.
+          </p>
+        </div>
+        <button mat-stroked-button type="button" class="delete-button" (click)="deleteCompany()">
+          <mat-icon>delete_forever</mat-icon>
+          <span>Delete company</span>
+        </button>
+      </section>
+    }
+  }
+</div>

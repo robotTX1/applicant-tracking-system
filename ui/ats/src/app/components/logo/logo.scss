@@ -1,0 +1,76 @@
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+  color: var(--mat-sys-on-surface, #000000);
+}
+
+.logo-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+  text-decoration: none;
+  color: var(--mat-sys-on-surface, #000000);
+
+  .logo-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background-color: light-dark(#000000, #ffffff);
+    color: light-dark(#ffffff, #000000);
+    border-radius: 4px;
+    font-family:
+      'Inter',
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+
+    .badge-text {
+      line-height: 1;
+    }
+  }
+
+  .logo-wordmark {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.15;
+    color: var(--mat-sys-on-surface, #000000);
+
+    .wordmark-line {
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      color: var(--mat-sys-on-surface, #000000);
+      transition: color 0.2s ease;
+    }
+  }
+}
+
+:host-context(.dark-theme) {
+  .logo-lockup {
+    color: #ffffff;
+
+    .logo-badge {
+      background-color: #ffffff;
+      color: #000000;
+    }
+
+    .wordmark-line {
+      color: #ffffff;
+    }
+  }
+}

@@ -1,0 +1,51 @@
+<h2 mat-dialog-title class="title">
+  <mat-icon aria-hidden="true">warning</mat-icon>
+  Delete {{ data.company.name }}?
+</h2>
+
+<mat-dialog-content>
+  <p>This permanently deletes:</p>
+  <ul class="consequences">
+    <li>all of the company's job listings, published or not,</li>
+    <li>every application to those jobs, with its interview feedback,</li>
+    <li>the team and the email templates.</li>
+  </ul>
+  <p><strong>This can't be undone.</strong> To close a single position instead, close its job.</p>
+
+  <form (ngSubmit)="confirm()" class="confirm-form">
+    <mat-form-field appearance="outline" class="name-field">
+      <mat-label>Type "{{ data.company.name }}" to confirm</mat-label>
+      <input
+        matInput
+        name="companyName"
+        autocomplete="off"
+        [ngModel]="typedName()"
+        (ngModelChange)="typedName.set($event)"
+        [disabled]="deleting()"
+      />
+    </mat-form-field>
+  </form>
+
+  @if (error()) {
+    <p class="error" role="alert">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()" [disabled]="deleting()">Cancel</button>
+  <button
+    mat-flat-button
+    type="button"
+    class="delete-button"
+    (click)="confirm()"
+    [disabled]="!matches() || deleting()"
+  >
+    @if (deleting()) {
+      <mat-spinner diameter="18" />
+    }
+    <span>Delete company</span>
+  </button>
+</mat-dialog-actions>

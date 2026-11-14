@@ -1,0 +1,182 @@
+<div class="team-container">
+  @if (!company()) {
+    <div class="state-card" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>domain_disabled</mat-icon>
+      </div>
+      <h1>Company not found</h1>
+      <p class="state-description">
+        This company doesn't exist, or you're not a member of its team.
+      </p>
+      <a mat-flat-button routerLink="/companies">
+        <mat-icon>domain</mat-icon>
+        <span>My companies</span>
+      </a>
+    </div>
+  } @else {
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/companies">My Companies</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <a [routerLink]="['/companies', companyId(), 'jobs']" [title]="company()!.name">{{
+        company()!.name
+      }}</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <span aria-current="page">Team</span>
+    </nav>
+
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Team members</h1>
+        <p class="page-subtitle">
+          @if (canManage()) {
+            Add colleagues and choose what they can do in {{ company()!.name }}.
+          } @else {
+            The people who hire for {{ company()!.name }}. Owners and co-owners manage the team.
+          }
+        </p>
+      </div>
+      @if (canManage()) {
+        <button mat-flat-button type="button" (click)="addMember()">
+          <mat-icon>person_add</mat-icon>
+          <span>Add member</span>
+        </button>
+      }
+    </header>
+
+    @if (members.isLoading()) {
+      <div class="member-list" aria-busy="true" aria-label="Loading team members">
+        @for (i of [0, 1, 2]; track i) {
+          <div class="member-row skeleton-row" aria-hidden="true">
+            <span class="skeleton avatar-skeleton"></span>
+            <span class="skeleton line w-40"></span>
+          </div>
+        }
+      </div>
+    } @else if (members.error()) {
+      <div class="state-card" role="alert">
+        <div class="state-icon-circle error">
+          <mat-icon>cloud_off</mat-icon>
+        </div>
+        <h2>Couldn't load the team</h2>
+        <p class="state-description">Something went wrong while loading the team members.</p>
+        <button mat-flat-button type="button" (click)="members.reload()">
+          <mat-icon>refresh</mat-icon>
+          <span>Try again</span>
+        </button>
+      </div>
+    } @else {
+      <ul class="member-list" aria-label="Team members">
+        @for (member of activeMembers(); track member.id) {
+          @let busy = busyId() === member.id;
+          <li class="member-row">
+            <span class="avatar" aria-hidden="true">{{ initials(member) }}</span>
+            <div class="member-info">
+              <span class="member-name">
+                {{ member.firstName }} {{ member.lastName }}
+                @if (isMe(member)) {
+                  <span class="you-badge">You</span>
+                }
+              </span>
+              <span class="member-email">{{ member.email }}</span>
+            </div>
+
+            <div class="member-side">
+              @if (busy) {
+                <mat-spinner diameter="20" />
+              }
+              @if (canEdit(member)) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="role-button"
+                  [matMenuTriggerFor]="roleMenu"
+                  [disabled]="busy"
+                  [attr.aria-label]="
+                    'Role of ' + member.firstName + ': ' + roleInfo[member.role].label + '. Change'
+                  "
+                >
+                  <span>{{ roleInfo[member.role].label }}</span>
+                  <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+                </button>
+                <mat-menu #roleMenu="matMenu" xPosition="before" class="role-menu">
+                  @for (role of assignableRoles; track role) {
+                    <button mat-menu-item type="button" (click)="changeRole(member, role)">
+                      <mat-icon>{{ role === member.role ? 'check' : '' }}</mat-icon>
+                      <span class="role-option">
+                        <span class="role-option-label">{{ roleInfo[role].label }}</span>
+                        <span class="role-option-description">{{
+                          roleInfo[role].description
+                        }}</span>
+                      </span>
+                    </button>
+                  }
+                </mat-menu>
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="remove-button"
+                  [disabled]="busy"
+                  (click)="removeMember(member)"
+                  [attr.aria-label]="
+                    isMe(member)
+                      ? 'Leave company'
+                      : 'Remove ' + member.firstName + ' ' + member.lastName
+                  "
+                >
+                  <mat-icon>{{ isMe(member) ? 'logout' : 'person_remove' }}</mat-icon>
+                </button>
+              } @else {
+                <span class="role-chip" [class.owner]="member.role === Role.Owner">{{
+                  roleInfo[member.role].label
+                }}</span>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+
+      @if (formerMembers().length > 0) {
+        <mat-slide-toggle
+          class="former-toggle"
+          [checked]="showFormer()"
+          (change)="showFormer.set($event.checked)"
+        >
+          Show former members ({{ formerMembers().length }})
+        </mat-slide-toggle>
+
+        @if (showFormer()) {
+          <ul class="member-list former" aria-label="Former members">
+            @for (member of formerMembers(); track member.id) {
+              <li class="member-row">
+                <span class="avatar" aria-hidden="true">{{ initials(member) }}</span>
+                <div class="member-info">
+                  <span class="member-name">{{ member.firstName }} {{ member.lastName }}</span>
+                  <span class="member-email">{{ member.email }}</span>
+                </div>
+                <span class="role-chip">Former {{ roleInfo[member.role].label }}</span>
+              </li>
+            }
+          </ul>
+          @if (canManage()) {
+            <p class="former-hint">To bring someone back, add them again with "Add member".</p>
+          }
+        }
+      }
+
+      <section class="roles-guide" aria-labelledby="roles-title">
+        <h2 id="roles-title">What each role can do</h2>
+        <dl>
+          @for (
+            role of [Role.Owner, Role.CoOwner, Role.HrManager, Role.TechnicalInterviewer];
+            track role
+          ) {
+            <div>
+              <dt>{{ roleInfo[role].label }}</dt>
+              <dd>{{ roleInfo[role].description }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+  }
+</div>

@@ -1,0 +1,542 @@
+<div class="job-create-page">
+  <div class="job-layout-container">
+    <!-- Breadcrumb Bar -->
+    <div class="breadcrumb-bar">
+      <a mat-button [routerLink]="returnLink()" class="back-link">
+        <mat-icon>arrow_back</mat-icon>
+        <span>{{ isEditMode() ? 'Back to job listings' : 'Back to My Companies' }}</span>
+      </a>
+    </div>
+
+    <!-- 2-Column Responsive Layout -->
+    <div class="two-column-layout">
+      <!-- Main Content (Left Column) -->
+      <main class="main-column">
+        @if (memberWithoutJobRights() && !isEditMode()) {
+          <mat-card class="empty-state-card" role="alert">
+            <mat-card-header>
+              <div mat-card-avatar class="header-avatar warn-avatar">
+                <mat-icon>lock</mat-icon>
+              </div>
+              <mat-card-title>You can't post jobs yet</mat-card-title>
+              <mat-card-subtitle>Owner, co-owner or HR manager role needed</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                Only owners, co-owners and HR managers can post job listings. Ask one of them to
+                change your role, or register your own company.
+              </p>
+            </mat-card-content>
+            <mat-card-actions align="end">
+              <a mat-button routerLink="/companies">My Companies</a>
+              <a mat-flat-button color="primary" routerLink="/company/register">
+                Register Company
+              </a>
+            </mat-card-actions>
+          </mat-card>
+        } @else if (!hasCompanies() && !isEditMode()) {
+          <!-- Empty State: No Companies -->
+          <mat-card class="empty-state-card">
+            <mat-card-header>
+              <div mat-card-avatar class="header-avatar warn-avatar">
+                <mat-icon>business</mat-icon>
+              </div>
+              <mat-card-title>No Organization Found</mat-card-title>
+              <mat-card-subtitle>Organization profile required</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                You must register an organization before creating and publishing job listings. Once
+                registered, default email templates and screening settings will be automatically
+                prepared for your company.
+              </p>
+            </mat-card-content>
+            <mat-card-actions align="end">
+              <a mat-button routerLink="/companies">Back to Companies</a>
+              <a mat-flat-button color="primary" routerLink="/company/register">
+                Register Company
+              </a>
+            </mat-card-actions>
+          </mat-card>
+        } @else if (isEditMode() && jobResource.isLoading()) {
+          <mat-card class="job-card edit-loading" aria-busy="true">
+            <mat-card-content>
+              <mat-spinner diameter="32"></mat-spinner>
+              <span>Loading job listing...</span>
+            </mat-card-content>
+          </mat-card>
+        } @else if (editLoadFailed()) {
+          <mat-card class="empty-state-card" role="alert">
+            <mat-card-header>
+              <div mat-card-avatar class="header-avatar warn-avatar">
+                <mat-icon>search_off</mat-icon>
+              </div>
+              <mat-card-title>Job listing not found</mat-card-title>
+              <mat-card-subtitle>It may have been deleted</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <p>
+                This job listing doesn't exist, or you don't have permission to edit it. Only
+                owners, co-owners and HR managers can edit job listings.
+              </p>
+            </mat-card-content>
+            <mat-card-actions align="end">
+              <a mat-flat-button [routerLink]="returnLink()">Back to job listings</a>
+            </mat-card-actions>
+          </mat-card>
+        } @else {
+          <!-- Job Creation Form Card -->
+          <mat-card class="job-card">
+            <mat-card-header>
+              <div mat-card-avatar class="header-avatar">
+                <mat-icon>work_outline</mat-icon>
+              </div>
+              <mat-card-title [class.edit-title]="isEditMode()">
+                @if (editedJob(); as job) {
+                  Edit Job Listing
+                  <span class="status-chip" [class]="job.status.toLowerCase() + '-chip'">
+                    {{ statusLabels[job.status] }}
+                  </span>
+                } @else {
+                  Create Job Listing
+                }
+              </mat-card-title>
+              <mat-card-subtitle>
+                @if (editedJob()?.status === Status.Published) {
+                  This job is live: changes are visible to candidates as soon as you save.
+                } @else if (isEditMode()) {
+                  Update the role, screening settings and candidate communications.
+                } @else {
+                  Configure role requirements, automated screening, and candidate communications.
+                }
+              </mat-card-subtitle>
+            </mat-card-header>
+
+            <mat-card-content>
+              @if (serverError()) {
+                <div class="error-banner" role="alert">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>{{ serverError() }}</span>
+                </div>
+              }
+
+              <form [formGroup]="form" novalidate class="job-form">
+                <div class="form-grid">
+                  <!-- Organization Selector (if user owns multiple companies) -->
+                  @if (companies().length > 1 && !isEditMode()) {
+                    <mat-form-field appearance="outline" class="col-full">
+                      <mat-label>Hiring Organization</mat-label>
+                      <mat-select formControlName="companyId" required>
+                        @for (comp of companies(); track comp.id) {
+                          <mat-option [value]="comp.id">{{ comp.name }}</mat-option>
+                        }
+                      </mat-select>
+                      <mat-icon matPrefix class="field-icon">domain</mat-icon>
+                      @if (form.controls.companyId.hasError('required')) {
+                        <mat-error>Hiring organization is required</mat-error>
+                      }
+                    </mat-form-field>
+                  }
+
+                  <!-- Job Title -->
+                  <mat-form-field appearance="outline" class="col-title">
+                    <mat-label>Job Title</mat-label>
+                    <input
+                      matInput
+                      formControlName="title"
+                      placeholder="e.g. Senior Full-Stack Engineer"
+                      maxlength="255"
+                      required
+                    />
+                    <mat-icon matPrefix class="field-icon">badge</mat-icon>
+                    @if (
+                      form.controls.title.hasError('required') ||
+                      form.controls.title.hasError('blank')
+                    ) {
+                      <mat-error>Job title is required</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Location -->
+                  <mat-form-field appearance="outline" class="col-location">
+                    <mat-label>Location / Work Arrangement</mat-label>
+                    <input
+                      matInput
+                      formControlName="location"
+                      placeholder="e.g. Remote, Budapest (Hybrid), London"
+                      maxlength="255"
+                      required
+                    />
+                    <mat-icon matPrefix class="field-icon">location_on</mat-icon>
+                    @if (
+                      form.controls.location.hasError('required') ||
+                      form.controls.location.hasError('blank')
+                    ) {
+                      <mat-error>Location is required</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <!-- Description (Markdown) -->
+                  <app-markdown-editor class="col-full col-description">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Role Description & Requirements</mat-label>
+                      <textarea
+                        matInput
+                        formControlName="description"
+                        placeholder="Describe responsibilities, required qualifications, team mission, and benefits..."
+                        cdkTextareaAutosize
+                        cdkAutosizeMinRows="7"
+                        cdkAutosizeMaxRows="25"
+                        maxlength="10000"
+                        #descInput
+                        required
+                      ></textarea>
+                      <mat-hint
+                        >Markdown supported: **bold**, _italic_, ## headings, - lists</mat-hint
+                      >
+                      <mat-hint align="end">{{ descInput.value.length }} / 10000</mat-hint>
+                      @if (
+                        form.controls.description.hasError('required') ||
+                        form.controls.description.hasError('blank')
+                      ) {
+                        <mat-error>Role description is required</mat-error>
+                      }
+                    </mat-form-field>
+                  </app-markdown-editor>
+                </div>
+
+                <!-- Automated AI Screening Section -->
+                <div class="section-card ai-section">
+                  <div class="section-header">
+                    <div class="section-icon ai-icon">
+                      <mat-icon>auto_awesome</mat-icon>
+                    </div>
+                    <div class="section-info">
+                      <div class="section-title">AI Candidate Screening</div>
+                      <div class="section-subtitle">
+                        Automatically score incoming applications against the role description
+                      </div>
+                    </div>
+                    <mat-slide-toggle
+                      formControlName="aiReviewEnabled"
+                      color="primary"
+                      class="ai-toggle"
+                    >
+                      {{ isAiReviewActive() ? 'Enabled' : 'Disabled' }}
+                    </mat-slide-toggle>
+                  </div>
+
+                  <div class="ai-config-body" [class.is-disabled]="!isAiReviewActive()">
+                    <div class="slider-header">
+                      <span class="slider-label">Minimum Passing Score:</span>
+                      <span class="score-display">{{ currentScore() }}%</span>
+                      @if (isAiReviewActive()) {
+                        <span class="tier-badge" [ngClass]="scoreTier().tierClass">
+                          {{ scoreTier().label }}
+                        </span>
+                      } @else {
+                        <span class="tier-badge tier-disabled">Screening Inactive</span>
+                      }
+                    </div>
+
+                    <mat-slider
+                      min="0"
+                      max="100"
+                      step="5"
+                      discrete
+                      showTickMarks
+                      [disabled]="!isAiReviewActive()"
+                      class="score-slider"
+                    >
+                      <input matSliderThumb formControlName="aiReviewMinScore" />
+                    </mat-slider>
+
+                    <p class="tier-explanation">
+                      @if (isAiReviewActive()) {
+                        {{ scoreTier().description }}
+                      } @else {
+                        Automated AI scoring is deactivated. All candidate applications will be
+                        routed directly for recruiter evaluation.
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Candidate Email Templates Section -->
+                <div class="section-card email-section">
+                  <div class="section-header">
+                    <div class="section-icon email-icon">
+                      <mat-icon>mail_outline</mat-icon>
+                    </div>
+                    <div class="section-info">
+                      <div class="section-title">Automated Email Templates</div>
+                      <div class="section-subtitle">
+                        Select default communication templates dispatched upon offer or decline
+                      </div>
+                    </div>
+                  </div>
+
+                  @if (isLoadingTemplates()) {
+                    <div class="templates-loading">
+                      <mat-spinner diameter="24"></mat-spinner>
+                      <span>Loading organization templates...</span>
+                    </div>
+                  } @else if (templateLoadError()) {
+                    <div class="template-error-banner">
+                      <mat-icon>error_outline</mat-icon>
+                      <span>{{ templateLoadError() }}</span>
+                    </div>
+                  } @else {
+                    <div class="templates-list">
+                      <!-- Offer Template Item -->
+                      <div class="template-item">
+                        <mat-form-field appearance="outline" class="template-select">
+                          <mat-label>Offer Email Template</mat-label>
+                          <mat-select formControlName="offerEmailTemplateId" required>
+                            @for (tpl of offerTemplates(); track tpl.id) {
+                              <mat-option [value]="tpl.id">{{ tpl.subject }}</mat-option>
+                            }
+                          </mat-select>
+                          <mat-icon matPrefix class="field-icon">check_circle</mat-icon>
+                          @if (form.controls.offerEmailTemplateId.hasError('required')) {
+                            <mat-error>Offer template is required</mat-error>
+                          }
+                        </mat-form-field>
+                        <button
+                          type="button"
+                          mat-stroked-button
+                          class="preview-btn"
+                          [disabled]="!form.controls.offerEmailTemplateId.value"
+                          (click)="openTemplatePreview(form.controls.offerEmailTemplateId.value)"
+                          matTooltip="Preview offer email template"
+                        >
+                          <mat-icon>visibility</mat-icon>
+                          <span>Preview</span>
+                        </button>
+                      </div>
+
+                      <!-- Decline Template Item -->
+                      <div class="template-item">
+                        <mat-form-field appearance="outline" class="template-select">
+                          <mat-label>Decline Email Template</mat-label>
+                          <mat-select formControlName="declineEmailTemplateId" required>
+                            @for (tpl of declineTemplates(); track tpl.id) {
+                              <mat-option [value]="tpl.id">{{ tpl.subject }}</mat-option>
+                            }
+                          </mat-select>
+                          <mat-icon matPrefix class="field-icon">cancel</mat-icon>
+                          @if (form.controls.declineEmailTemplateId.hasError('required')) {
+                            <mat-error>Decline template is required</mat-error>
+                          }
+                        </mat-form-field>
+                        <button
+                          type="button"
+                          mat-stroked-button
+                          class="preview-btn"
+                          [disabled]="!form.controls.declineEmailTemplateId.value"
+                          (click)="openTemplatePreview(form.controls.declineEmailTemplateId.value)"
+                          matTooltip="Preview decline email template"
+                        >
+                          <mat-icon>visibility</mat-icon>
+                          <span>Preview</span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Form Action Buttons -->
+                <div class="form-actions">
+                  <button
+                    type="button"
+                    mat-button
+                    (click)="cancel()"
+                    [disabled]="isSubmitting()"
+                    class="cancel-btn"
+                  >
+                    Cancel
+                  </button>
+
+                  <div class="action-buttons-group">
+                    @if (editedJob(); as job) {
+                      @if (job.status === Status.Draft) {
+                        <button
+                          type="button"
+                          mat-stroked-button
+                          (click)="saveChanges()"
+                          [disabled]="isSubmitting() || form.invalid"
+                          class="draft-btn"
+                        >
+                          @if (isSubmitting() && submitAction() === 'save') {
+                            <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                            <span>Saving...</span>
+                          } @else {
+                            <span class="btn-content">
+                              <mat-icon>save</mat-icon>
+                              <span>Save Draft</span>
+                            </span>
+                          }
+                        </button>
+                        <button
+                          type="button"
+                          mat-flat-button
+                          color="primary"
+                          (click)="publish()"
+                          [disabled]="isSubmitting() || form.invalid"
+                          class="publish-btn"
+                        >
+                          @if (isSubmitting() && submitAction() === 'publish') {
+                            <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                            <span>Publishing...</span>
+                          } @else {
+                            <span class="btn-content">
+                              <mat-icon>rocket_launch</mat-icon>
+                              <span>Save &amp; Publish</span>
+                            </span>
+                          }
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          mat-flat-button
+                          color="primary"
+                          (click)="saveChanges()"
+                          [disabled]="isSubmitting() || form.invalid || form.pristine"
+                          class="publish-btn"
+                        >
+                          @if (isSubmitting() && submitAction() === 'save') {
+                            <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                            <span>Saving...</span>
+                          } @else {
+                            <span class="btn-content">
+                              <mat-icon>save</mat-icon>
+                              <span>Save Changes</span>
+                            </span>
+                          }
+                        </button>
+                      }
+                    } @else {
+                      <button
+                        type="button"
+                        mat-stroked-button
+                        (click)="saveDraft()"
+                        [disabled]="isSubmitting() || form.invalid"
+                        class="draft-btn"
+                      >
+                        @if (isSubmitting() && submitAction() === 'draft') {
+                          <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                          <span>Saving Draft...</span>
+                        } @else {
+                          <span class="btn-content">
+                            <mat-icon>save</mat-icon>
+                            <span>Save as Draft</span>
+                          </span>
+                        }
+                      </button>
+
+                      <button
+                        type="button"
+                        mat-flat-button
+                        color="primary"
+                        (click)="publish()"
+                        [disabled]="isSubmitting() || form.invalid"
+                        class="publish-btn"
+                      >
+                        @if (isSubmitting() && submitAction() === 'publish') {
+                          <mat-spinner diameter="18" class="btn-spinner"></mat-spinner>
+                          <span>Publishing Listing...</span>
+                        } @else {
+                          <span class="btn-content">
+                            <mat-icon>rocket_launch</mat-icon>
+                            <span>Publish Listing</span>
+                          </span>
+                        }
+                      </button>
+                    }
+                  </div>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        }
+      </main>
+
+      <!-- Sidebar Guidance (Right Column) -->
+      <aside class="sidebar-column">
+        <!-- AI Screening Guidance Card -->
+        <mat-card class="sidebar-card">
+          <mat-card-header>
+            <div mat-card-avatar class="sidebar-avatar ai-avatar">
+              <mat-icon>auto_awesome</mat-icon>
+            </div>
+            <mat-card-title>AI Screening</mat-card-title>
+            <mat-card-subtitle>Automated initial review</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="sidebar-text">
+              The AI screening engine analyzes applicant resumes against your job title, location,
+              and detailed requirements to generate an objective match score (0–100%).
+            </p>
+            <div class="screening-tips">
+              <div class="tip-row">
+                <mat-icon class="tip-icon">check_circle</mat-icon>
+                <span
+                  ><strong>60–79%:</strong> Recommended for most technical and product roles.</span
+                >
+              </div>
+              <div class="tip-row">
+                <mat-icon class="tip-icon">check_circle</mat-icon>
+                <span
+                  ><strong>80%+:</strong> Recommended when expecting high applicant volume.</span
+                >
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Email Communication Card -->
+        <mat-card class="sidebar-card">
+          <mat-card-header>
+            <div mat-card-avatar class="sidebar-avatar email-avatar">
+              <mat-icon>mark_email_read</mat-icon>
+            </div>
+            <mat-card-title>Email Automation</mat-card-title>
+            <mat-card-subtitle>Applicant lifecycle updates</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="sidebar-text">
+              Selected email templates are filled with the candidate's and job's details (<code>{{
+                '${firstName}'
+              }}</code
+              >, <code>{{ '${jobTitle}' }}</code
+              >) and sent automatically when you make an offer or decline a candidate.
+            </p>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Draft vs Published Card -->
+        <mat-card class="sidebar-card">
+          <mat-card-header>
+            <div mat-card-avatar class="sidebar-avatar lifecycle-avatar">
+              <mat-icon>visibility</mat-icon>
+            </div>
+            <mat-card-title>Draft vs. Published</mat-card-title>
+            <mat-card-subtitle>Listing visibility</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="lifecycle-list">
+              <div class="lifecycle-item">
+                <span class="status-chip draft-chip">DRAFT</span>
+                <p>Saved privately. Only visible to team members for editing and review.</p>
+              </div>
+              <div class="lifecycle-item">
+                <span class="status-chip published-chip">PUBLISHED</span>
+                <p>Live immediately. Candidates can discover and apply for this opening.</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </aside>
+    </div>
+  </div>
+</div>

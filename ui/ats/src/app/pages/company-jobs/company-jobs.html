@@ -1,0 +1,232 @@
+<div class="company-jobs-container">
+  @if (!company()) {
+    <div class="state-card" role="alert">
+      <div class="state-icon-circle error">
+        <mat-icon>domain_disabled</mat-icon>
+      </div>
+      <h1>Company not found</h1>
+      <p class="state-description">
+        This company doesn't exist, or you're not a member of its team.
+      </p>
+      <a mat-flat-button routerLink="/companies">
+        <mat-icon>domain</mat-icon>
+        <span>My companies</span>
+      </a>
+    </div>
+  } @else {
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/companies">My Companies</a>
+      <mat-icon aria-hidden="true">chevron_right</mat-icon>
+      <span aria-current="page" [title]="company()!.name">{{ company()!.name }}</span>
+    </nav>
+
+    <header class="page-header">
+      <div class="header-titles">
+        <h1 class="page-title">Job listings</h1>
+        <p class="page-subtitle">
+          @if (canManage()) {
+            Publish, close and track the open positions of {{ company()!.name }}.
+          } @else {
+            The open positions of {{ company()!.name }}.
+          }
+        </p>
+      </div>
+      @if (canManage()) {
+        <a
+          mat-flat-button
+          routerLink="/jobs/new"
+          [queryParams]="{ companyId: companyId() }"
+          class="post-job-button"
+        >
+          <mat-icon>add</mat-icon>
+          <span>Post job</span>
+        </a>
+      }
+    </header>
+
+    @if (canManage()) {
+      <mat-chip-listbox
+        class="filter-chips"
+        aria-label="Filter job listings by status"
+        [value]="status()"
+        (change)="setFilter($event.value)"
+      >
+        @for (f of filters; track f.value) {
+          <mat-chip-option
+            [value]="f.value"
+            [selected]="f.value === status()"
+            (selectionChange)="keepActiveFilterSelected($event)"
+          >
+            {{ f.label }}
+          </mat-chip-option>
+        }
+      </mat-chip-listbox>
+    }
+
+    @if (jobs.isLoading()) {
+      <div class="job-list" aria-busy="true" aria-label="Loading job listings">
+        @for (i of skeletons; track i) {
+          <div class="job-card skeleton-card" aria-hidden="true">
+            <span class="skeleton line w-60"></span>
+            <span class="skeleton line w-40"></span>
+          </div>
+        }
+      </div>
+    } @else if (jobs.error()) {
+      <div class="state-card" role="alert">
+        <div class="state-icon-circle error">
+          <mat-icon>cloud_off</mat-icon>
+        </div>
+        <h2>Couldn't load the job listings</h2>
+        <p class="state-description">Something went wrong while loading the job listings.</p>
+        <button mat-flat-button type="button" (click)="jobs.reload()">
+          <mat-icon>refresh</mat-icon>
+          <span>Try again</span>
+        </button>
+      </div>
+    } @else if (jobs.value(); as result) {
+      @if (result.content.length === 0) {
+        <div class="state-card">
+          <div class="state-icon-circle">
+            <mat-icon>work_outline</mat-icon>
+          </div>
+          @if (status() !== 'all') {
+            <h2>Nothing here</h2>
+            <p class="state-description">No job listings with this status.</p>
+            <button mat-stroked-button type="button" (click)="setFilter('all')">Show all</button>
+          } @else if (canManage()) {
+            <h2>No job listings yet</h2>
+            <p class="state-description">
+              Post your first job. You can keep it as a draft until it's ready to publish.
+            </p>
+            <a mat-flat-button routerLink="/jobs/new" [queryParams]="{ companyId: companyId() }">
+              <mat-icon>add</mat-icon>
+              <span>Post job</span>
+            </a>
+          } @else {
+            <h2>No open positions</h2>
+            <p class="state-description">This company has no published job listings right now.</p>
+          }
+        </div>
+      } @else {
+        <ul class="job-list" aria-label="Job listings">
+          @for (job of result.content; track job.id) {
+            @let action = primaryAction[job.status];
+            @let busy = busyJobId() === job.id;
+            <li class="job-card" [class]="'status-' + job.status.toLowerCase()">
+              <div class="job-main">
+                <div class="title-row">
+                  <a class="job-title" [routerLink]="['/companies', companyId(), 'jobs', job.id]">{{
+                    job.title
+                  }}</a>
+                  <span class="status-chip">{{ statusLabels[job.status] }}</span>
+                </div>
+                <span class="job-meta">
+                  <span class="meta-item">
+                    <mat-icon aria-hidden="true">location_on</mat-icon>
+                    {{ job.location }}
+                  </span>
+                  <span class="meta-item">Created {{ job.createdAt | relativeTime }}</span>
+                  @if (job.updatedAt !== job.createdAt) {
+                    <span class="meta-item">Updated {{ job.updatedAt | relativeTime }}</span>
+                  }
+                </span>
+              </div>
+
+              <div class="job-side">
+                <span class="applicant-count" [class.none]="!job.applicationCount">
+                  <mat-icon aria-hidden="true">group</mat-icon>
+                  {{ applicantLabel(job) }}
+                </span>
+
+                @if (canManage()) {
+                  <div class="job-actions">
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      [disabled]="busy"
+                      (click)="changeStatus(job, action.target)"
+                      [attr.aria-label]="action.label + ' ' + job.title"
+                    >
+                      @if (busy) {
+                        <mat-spinner diameter="18" />
+                      } @else {
+                        <mat-icon>{{ action.icon }}</mat-icon>
+                      }
+                      <span>{{ action.label }}</span>
+                    </button>
+                    <button
+                      mat-icon-button
+                      type="button"
+                      [matMenuTriggerFor]="jobMenu"
+                      [disabled]="busy"
+                      [attr.aria-label]="'More actions for ' + job.title"
+                    >
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #jobMenu="matMenu" xPosition="before">
+                      <a
+                        mat-menu-item
+                        [routerLink]="['/companies', companyId(), 'jobs', job.id, 'edit']"
+                      >
+                        <mat-icon>edit</mat-icon>
+                        <span>Edit</span>
+                      </a>
+                      <a mat-menu-item [routerLink]="['/jobs', job.id]">
+                        <mat-icon>visibility</mat-icon>
+                        <span>View posting</span>
+                      </a>
+                      @if (job.status !== Status.Draft) {
+                        <button
+                          mat-menu-item
+                          type="button"
+                          (click)="changeStatus(job, Status.Draft)"
+                        >
+                          <mat-icon>edit_note</mat-icon>
+                          <span>Move to drafts</span>
+                        </button>
+                      }
+                      <mat-divider />
+                      @if (canDelete(job)) {
+                        <button
+                          mat-menu-item
+                          type="button"
+                          class="delete-menu-item"
+                          (click)="deleteJob(job)"
+                        >
+                          <mat-icon>delete</mat-icon>
+                          <span>Delete</span>
+                        </button>
+                      } @else {
+                        <button mat-menu-item type="button" disabled class="delete-disabled">
+                          <mat-icon>delete</mat-icon>
+                          <span class="menu-two-line">
+                            <span>Delete</span>
+                            <span class="menu-hint">Jobs with applicants can only be closed</span>
+                          </span>
+                        </button>
+                      }
+                    </mat-menu>
+                  </div>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+
+        @if (result.page.totalPages > 1) {
+          <mat-paginator
+            class="jobs-paginator"
+            [length]="result.page.totalElements"
+            [pageIndex]="page() - 1"
+            [pageSize]="pageSize"
+            [hidePageSize]="true"
+            [showFirstLastButtons]="true"
+            (page)="onPage($event)"
+            aria-label="Select page of job listings"
+          />
+        }
+      }
+    }
+  }
+</div>

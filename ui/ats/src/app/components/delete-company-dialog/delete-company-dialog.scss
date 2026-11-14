@@ -1,0 +1,44 @@
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  mat-icon {
+    color: var(--mat-sys-error);
+  }
+}
+
+.consequences {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+.confirm-form {
+  margin-top: 16px;
+}
+
+.name-field {
+  width: 100%;
+}
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+}
+
+.delete-button:not(:disabled) {
+  background: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+}
+
+mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}

@@ -1,0 +1,171 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <!-- 1. Hamburger button (Only visible on mobile, before the logo) -->
+  @if (isMobile()) {
+    <button
+      mat-icon-button
+      (click)="menuToggle.emit()"
+      class="mobile-menu-btn"
+      aria-label="Open navigation drawer"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+
+  <!-- 2. Brand Logo & Home Link (Always visible) -->
+  <a class="brand" [routerLink]="homeLink" aria-label="ATS Home">
+    <app-logo />
+  </a>
+
+  <!-- 3. Desktop Navigation Links (Only visible on desktop) -->
+  @if (!isMobile()) {
+    <nav class="nav-links">
+      <a mat-button routerLink="/jobs" routerLinkActive="active-link">Find Jobs</a>
+
+      @if (keycloak.authenticated) {
+        <a mat-button routerLink="/my-applications" routerLinkActive="active-link"
+          >My Applications</a
+        >
+      }
+    </nav>
+  }
+
+  <!-- Spacer pushing actions to the far right -->
+  <span class="spacer"></span>
+
+  <!-- 4. Right Side Actions (Adapted for Desktop & Mobile) -->
+  <div class="actions">
+    @if (!keycloak.authenticated) {
+      <!-- Unauthenticated State -->
+      @if (!isMobile()) {
+        <button mat-button (click)="registerCompany()">
+          <mat-icon>business</mat-icon>
+          Register Company
+        </button>
+      }
+      <button mat-button (click)="login()">Sign in</button>
+      @if (!isMobile()) {
+        <button mat-flat-button color="accent" (click)="register()">Sign up</button>
+      }
+    } @else {
+      <!-- Authenticated State -->
+      @if (!isMobile()) {
+        @if (hasCompany()) {
+          <!-- Desktop Recruiter Actions -->
+          <a
+            mat-button
+            [routerLink]="companyState.jobListingsLink()"
+            routerLinkActive
+            #listingsLink="routerLinkActive"
+            [class.active-link]="listingsLink.isActive && companyState.linkCompanyId() !== null"
+          >
+            <mat-icon>work</mat-icon>
+            Job Listings
+          </a>
+
+          <button mat-button [matMenuTriggerFor]="desktopCompanyMenu">
+            <mat-icon>apartment</mat-icon>
+            Company
+            <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #desktopCompanyMenu="matMenu">
+            <a mat-menu-item routerLink="/companies">
+              <mat-icon>domain</mat-icon>
+              <span>My Companies</span>
+            </a>
+            <mat-divider></mat-divider>
+            <a mat-menu-item [routerLink]="companyState.teamLink()">
+              <mat-icon>people</mat-icon>
+              <span>Team Members</span>
+            </a>
+            <a mat-menu-item [routerLink]="companyState.emailTemplatesLink()">
+              <mat-icon>email</mat-icon>
+              <span>Email Templates</span>
+            </a>
+            <mat-divider></mat-divider>
+            <a mat-menu-item [routerLink]="companyState.settingsLink()">
+              <mat-icon>settings</mat-icon>
+              <span>Company Settings</span>
+            </a>
+            @if (canCreateCompany()) {
+              <mat-divider></mat-divider>
+              <a mat-menu-item routerLink="/company/register">
+                <mat-icon>add_business</mat-icon>
+                <span>Register Another Company</span>
+              </a>
+            }
+          </mat-menu>
+
+          @if (companyState.canPostJobs()) {
+            <a mat-flat-button color="accent" routerLink="/jobs/new" class="post-job-btn">
+              <mat-icon>add</mat-icon>
+              Post Job Listing
+            </a>
+          }
+        } @else {
+          <!-- Desktop Candidate Action -->
+          <button mat-button (click)="registerCompany()">
+            <mat-icon>business</mat-icon>
+            Register Company
+          </button>
+        }
+      }
+
+      <!-- Profile Button: STAYS ON THE RIGHT IN BOTH DESKTOP AND MOBILE -->
+      <button mat-button [matMenuTriggerFor]="userProfileMenu" class="user-profile-btn">
+        <mat-icon class="user-avatar-icon">account_circle</mat-icon>
+        <span class="user-name">{{ username }}</span>
+        <mat-icon class="user-dropdown-icon" iconPositionEnd>arrow_drop_down</mat-icon>
+      </button>
+
+      <mat-menu #userProfileMenu="matMenu" xPosition="before">
+        <div class="user-menu-header">
+          <div class="user-display-name">{{ username }}</div>
+          @if (userEmail) {
+            <div class="user-display-email">{{ userEmail }}</div>
+          }
+        </div>
+        <mat-divider></mat-divider>
+        <a mat-menu-item routerLink="/profile">
+          <mat-icon>badge</mat-icon>
+          <span>My Profile & CV</span>
+        </a>
+        <mat-divider></mat-divider>
+        <!-- Theme Submenu Trigger -->
+        <button mat-menu-item [matMenuTriggerFor]="profileThemeSubMenu">
+          <mat-icon>{{ themeService.getThemeIcon() }}</mat-icon>
+          <span>Theme ({{ themeService.getThemeLabel() }})</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign Out</span>
+        </button>
+      </mat-menu>
+
+      <!-- Theme Submenu -->
+      <mat-menu #profileThemeSubMenu="matMenu">
+        <button mat-menu-item (click)="themeService.setTheme('light')">
+          <mat-icon>light_mode</mat-icon>
+          <span>Light</span>
+          @if (themeService.currentTheme() === 'light') {
+            <mat-icon class="check-icon">check</mat-icon>
+          }
+        </button>
+        <button mat-menu-item (click)="themeService.setTheme('dark')">
+          <mat-icon>dark_mode</mat-icon>
+          <span>Dark</span>
+          @if (themeService.currentTheme() === 'dark') {
+            <mat-icon class="check-icon">check</mat-icon>
+          }
+        </button>
+        <button mat-menu-item (click)="themeService.setTheme('system')">
+          <mat-icon>settings_brightness</mat-icon>
+          <span>System</span>
+          @if (themeService.currentTheme() === 'system') {
+            <mat-icon class="check-icon">check</mat-icon>
+          }
+        </button>
+      </mat-menu>
+    }
+  </div>
+</mat-toolbar>

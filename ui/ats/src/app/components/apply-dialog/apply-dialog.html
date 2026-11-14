@@ -1,0 +1,130 @@
+<h2 mat-dialog-title>Apply for {{ data.job.title }}</h2>
+
+<mat-dialog-content class="apply-content">
+  @if (data.companyName) {
+    <p class="apply-subtitle">{{ data.companyName }} · {{ data.job.location }}</p>
+  }
+
+  <section class="apply-section" aria-labelledby="cv-heading">
+    <h3 id="cv-heading" class="section-title">CV</h3>
+
+    @if (profileCv.isLoading()) {
+      <div class="cv-loading" role="status">
+        <mat-spinner diameter="20" />
+        <span>Checking your profile CV…</span>
+      </div>
+    } @else {
+      @if (profileCv.hasValue() && profileCv.value(); as cv) {
+        <mat-radio-group
+          class="cv-options"
+          aria-labelledby="cv-heading"
+          [value]="cvSource()"
+          (change)="cvSource.set($event.value)"
+        >
+          <mat-radio-button value="profile">
+            <span class="option-label">Use my profile CV</span>
+            <span class="option-detail">
+              {{ cv.originalDocumentName }} · uploaded {{ cv.uploadedAt | date: 'mediumDate' }}
+            </span>
+          </mat-radio-button>
+          <mat-radio-button value="upload">
+            <span class="option-label">Upload a different CV for this application</span>
+          </mat-radio-button>
+        </mat-radio-group>
+      } @else if (profileCv.error()) {
+        <p class="cv-note">
+          We couldn't check your profile CV, so please attach one for this application.
+        </p>
+      } @else {
+        <p class="cv-note">You don't have a CV on your profile yet. Attach one to apply.</p>
+      }
+
+      @if (needsFile()) {
+        <div class="file-picker">
+          <input
+            #fileInput
+            type="file"
+            [accept]="cvAccept"
+            class="cdk-visually-hidden"
+            id="cv-file-input"
+            aria-describedby="cv-file-hint"
+            (change)="onFileSelected(fileInput)"
+          />
+
+          @if (file(); as selected) {
+            <div class="selected-file">
+              <mat-icon class="file-icon" aria-hidden="true">picture_as_pdf</mat-icon>
+              <span class="file-name">{{ selected.name }}</span>
+              <span class="file-size">{{ formatFileSize(selected.size) }}</span>
+              <button
+                mat-icon-button
+                type="button"
+                aria-label="Remove selected CV"
+                (click)="removeFile()"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          } @else {
+            <button mat-stroked-button type="button" (click)="fileInput.click()">
+              <mat-icon>upload_file</mat-icon>
+              <span>Choose PDF</span>
+            </button>
+          }
+          <p id="cv-file-hint" class="file-hint">PDF only, up to 5 MB.</p>
+          @if (fileError(); as error) {
+            <p class="file-error" role="alert">{{ error }}</p>
+          }
+
+          @if (profileCv.hasValue() && !profileCv.value()) {
+            <mat-checkbox
+              [checked]="saveAsProfileCv()"
+              (change)="saveAsProfileCv.set($event.checked)"
+            >
+              Also save as my profile CV for future applications
+            </mat-checkbox>
+          }
+        </div>
+      }
+    }
+  </section>
+
+  <section class="apply-section">
+    <mat-form-field appearance="outline" class="message-field">
+      <mat-label>Message to the recruiter (optional)</mat-label>
+      <textarea
+        matInput
+        [formField]="messageForm.message"
+        cdkTextareaAutosize
+        cdkAutosizeMinRows="3"
+        cdkAutosizeMaxRows="10"
+        placeholder="Why are you a good fit? Anything they should know?"
+      ></textarea>
+      <mat-hint align="end">
+        {{ messageForm.message().value().length }} / {{ maxMessageLength }}
+      </mat-hint>
+      @if (messageForm.message().invalid()) {
+        <mat-error>Keep it under {{ maxMessageLength }} characters.</mat-error>
+      }
+    </mat-form-field>
+  </section>
+
+  @if (submitError(); as error) {
+    <p class="submit-error" role="alert">
+      <mat-icon aria-hidden="true">error</mat-icon>
+      <span>{{ error }}</span>
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" mat-dialog-close [disabled]="submitting()">Cancel</button>
+  <button mat-flat-button type="button" [disabled]="!canSubmit()" (click)="submit()">
+    @if (submitting()) {
+      <mat-spinner diameter="18" class="button-spinner" />
+    } @else {
+      <mat-icon>send</mat-icon>
+    }
+    <span>{{ submitting() ? 'Submitting…' : 'Submit application' }}</span>
+  </button>
+</mat-dialog-actions>
